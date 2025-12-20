@@ -1,27 +1,30 @@
 --[[
-    FH4N HUB V4 - FLY DIRECTIONAL UPDATE
-    Fitur: Fly (Directional), Speed, InfJump, Noclip, Anti-AFK
+    FH4N HUB V5 - MOBILE OPTIMIZED
+    Fitur: Fly (Joystick/Mobile Support), Speed, InfJump, Noclip, Anti-AFK
 ]]
 
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local LogoFN = Instance.new("TextButton")
 local Container = Instance.new("ScrollingFrame")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
--- Setup UI Utama
+-- Setup UI
 ScreenGui.Parent = game.CoreGui
-ScreenGui.Name = "FH4N_V4"
+ScreenGui.Name = "FH4N_Mobile"
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 -- --- LOGO FN (MINIMIZE) ---
 LogoFN.Name = "LogoFN"
 LogoFN.Parent = ScreenGui
 LogoFN.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 LogoFN.Position = UDim2.new(0.05, 0, 0.4, 0)
-LogoFN.Size = UDim2.new(0, 60, 0, 60)
+LogoFN.Size = UDim2.new(0, 55, 0, 55)
 LogoFN.Visible = false
 LogoFN.Text = "FN"
 LogoFN.TextColor3 = Color3.fromRGB(0, 255, 255)
-LogoFN.TextSize = 24
+LogoFN.TextSize = 22
 LogoFN.Font = Enum.Font.GothamBold
 Instance.new("UICorner", LogoFN).CornerRadius = UDim.new(1, 0)
 local lStroke = Instance.new("UIStroke", LogoFN)
@@ -32,35 +35,35 @@ lStroke.Thickness = 2
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MainFrame.Position = UDim2.new(0.5, -100, 0.5, -150)
-MainFrame.Size = UDim2.new(0, 220, 0, 320)
+MainFrame.Size = UDim2.new(0, 210, 0, 300)
 MainFrame.Active = true
-MainFrame.Draggable = true
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 15)
+MainFrame.Draggable = true -- Bisa digeser di Mobile
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
 local mStroke = Instance.new("UIStroke", MainFrame)
 mStroke.Color = Color3.fromRGB(45, 45, 45)
 
--- Header & Close
 local Title = Instance.new("TextLabel", MainFrame)
-Title.Size = UDim2.new(1, 0, 0, 45)
-Title.Text = "FH4N HUB V4"
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Text = "FH4N HUB V5"
 Title.TextColor3 = Color3.fromRGB(0, 255, 255)
 Title.Font = Enum.Font.GothamBold
 Title.BackgroundTransparency = 1
 
 local CloseBtn = Instance.new("TextButton", MainFrame)
 CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-CloseBtn.Position = UDim2.new(1, -35, 0, 7)
-CloseBtn.Text = "-"
-CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.Position = UDim2.new(1, -35, 0, 5)
+CloseBtn.Text = "×"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+CloseBtn.TextSize = 25
 CloseBtn.BackgroundTransparency = 1
 
 Container.Parent = MainFrame
-Container.Position = UDim2.new(0, 10, 0, 50)
-Container.Size = UDim2.new(1, -20, 1, -60)
+Container.Position = UDim2.new(0, 10, 0, 45)
+Container.Size = UDim2.new(1, -20, 1, -55)
 Container.BackgroundTransparency = 1
 Container.ScrollBarThickness = 0
 local Layout = Instance.new("UIListLayout", Container)
-Layout.Padding = UDim.new(0, 8)
+Layout.Padding = UDim.new(0, 7)
 
 -- Logika Buka/Tutup
 CloseBtn.MouseButton1Click:Connect(function()
@@ -75,84 +78,74 @@ end)
 -- --- FUNGSI CREATE BUTTON ---
 local function AddBtn(txt, cb)
     local b = Instance.new("TextButton", Container)
-    b.Size = UDim2.new(1, 0, 0, 40)
+    b.Size = UDim2.new(1, 0, 0, 38)
     b.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     b.Text = txt
     b.TextColor3 = Color3.fromRGB(200, 200, 200)
-    b.Font = Enum.Font.Gotham
-    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
+    b.Font = Enum.Font.GothamMedium
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
     b.MouseButton1Click:Connect(function() cb(b) end)
     return b
 end
 
--- --- FITUR FLY DIRECTIONAL ---
+-- --- FITUR FLY MOBILE (Joystick Support) ---
 local flying = false
 local flySpeed = 50
-local ctrl = {f = 0, b = 0, l = 0, r = 0}
-local lastCtrl = {f = 0, b = 0, l = 0, r = 0}
-
-local function flyLogic()
-    local p = game.Players.LocalPlayer
-    local c = p.Character or p.CharacterAdded:Wait()
-    local root = c:WaitForChild("HumanoidRootPart")
-    local bg = Instance.new("BodyGyro", root)
-    local bv = Instance.new("BodyVelocity", root)
-    
-    bg.P = 9e4
-    bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-    bg.CFrame = root.CFrame
-    
-    bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-    bv.Velocity = Vector3.new(0, 0.1, 0)
-    
-    task.spawn(function()
-        repeat wait()
-            p.Character.Humanoid.PlatformStand = true
-            if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
-                bv.Velocity = ((workspace.CurrentCamera.CFrame.LookVector * (ctrl.f + ctrl.b)) + ((workspace.CurrentCamera.CFrame * CFrame.new(ctrl.l + ctrl.r, (ctrl.f + ctrl.b) * 0.2, 0).p) - workspace.CurrentCamera.CFrame.p)) * flySpeed
-                lastCtrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
-            else
-                bv.Velocity = Vector3.new(0, 0.1, 0)
-            end
-            bg.CFrame = workspace.CurrentCamera.CFrame
-        until not flying
-        ctrl = {f = 0, b = 0, l = 0, r = 0}
-        lastCtrl = {f = 0, b = 0, l = 0, r = 0}
-        p.Character.Humanoid.PlatformStand = false
-        bg:Destroy()
-        bv:Destroy()
-    end)
-end
-
--- Input Fly
-game:GetService("UserInputService").InputBegan:Connect(function(input, gpe)
-    if gpe then return end
-    if input.KeyCode == Enum.KeyCode.W then ctrl.f = 1
-    elseif input.KeyCode == Enum.KeyCode.S then ctrl.b = -1
-    elseif input.KeyCode == Enum.KeyCode.A then ctrl.l = -1
-    elseif input.KeyCode == Enum.KeyCode.D then ctrl.r = 1 end
-end)
-
-game:GetService("UserInputService").InputEnded:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.W then ctrl.f = 0
-    elseif input.KeyCode == Enum.KeyCode.S then ctrl.b = 0
-    elseif input.KeyCode == Enum.KeyCode.A then ctrl.l = 0
-    elseif input.KeyCode == Enum.KeyCode.D then ctrl.r = 0 end
-end)
+local camera = workspace.CurrentCamera
 
 AddBtn("Fly: OFF", function(b)
     flying = not flying
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local root = character:WaitForChild("HumanoidRootPart")
+    local humanoid = character:WaitForChild("Humanoid")
+
     if flying then
         b.Text = "Fly: ON"
         b.TextColor3 = Color3.fromRGB(0, 255, 255)
-        flyLogic()
+        
+        local bv = Instance.new("BodyVelocity")
+        bv.Name = "FlyVelocity"
+        bv.Parent = root
+        bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+        bv.Velocity = Vector3.new(0, 0, 0)
+
+        local bg = Instance.new("BodyGyro")
+        bg.Name = "FlyGyro"
+        bg.Parent = root
+        bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+        bg.P = 9000
+        
+        task.spawn(function()
+            while flying do
+                RunService.RenderStepped:Wait()
+                humanoid.PlatformStand = true
+                
+                -- Deteksi arah dari Joystick Mobile atau Keyboard PC
+                local moveDir = humanoid.MoveDirection
+                
+                if moveDir.Magnitude > 0 then
+                    -- Terbang ke arah joystick/kamera
+                    bv.Velocity = (camera.CFrame.LookVector * moveDir.Z * -flySpeed) + (camera.CFrame.RightVector * moveDir.X * flySpeed)
+                else
+                    bv.Velocity = Vector3.new(0, 0.1, 0)
+                end
+                
+                bg.CFrame = camera.CFrame
+            end
+            
+            -- Reset saat OFF
+            bv:Destroy()
+            bg:Destroy()
+            humanoid.PlatformStand = false
+        end)
     else
         b.Text = "Fly: OFF"
         b.TextColor3 = Color3.fromRGB(200, 200, 200)
     end
 end)
 
--- --- FITUR LAINNYA ---
+-- --- FITUR SPEED ---
 local sOn = false
 AddBtn("Speed: OFF", function(b)
     sOn = not sOn
@@ -161,8 +154,9 @@ AddBtn("Speed: OFF", function(b)
     b.TextColor3 = sOn and Color3.fromRGB(0, 255, 255) or Color3.fromRGB(200, 200, 200)
 end)
 
+-- --- FITUR INF JUMP ---
 local ijOn = false
-game:GetService("UserInputService").JumpRequest:Connect(function()
+UserInputService.JumpRequest:Connect(function()
     if ijOn then game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping") end
 end)
 AddBtn("InfJump: OFF", function(b)
@@ -171,8 +165,9 @@ AddBtn("InfJump: OFF", function(b)
     b.TextColor3 = ijOn and Color3.fromRGB(0, 255, 255) or Color3.fromRGB(200, 200, 200)
 end)
 
+-- --- FITUR NOCLIP ---
 local ncOn = false
-game:GetService("RunService").Stepped:Connect(function()
+RunService.Stepped:Connect(function()
     if ncOn and game.Players.LocalPlayer.Character then
         for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
             if v:IsA("BasePart") then v.CanCollide = false end
@@ -185,13 +180,14 @@ AddBtn("Noclip: OFF", function(b)
     b.TextColor3 = ncOn and Color3.fromRGB(0, 255, 255) or Color3.fromRGB(200, 200, 200)
 end)
 
+-- --- FITUR ANTI-AFK ---
 AddBtn("Anti-AFK", function(b)
     local vu = game:GetService("VirtualUser")
     game.Players.LocalPlayer.Idled:Connect(function()
         vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-        wait(1)
+        task.wait(1)
         vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
     end)
-    b.Text = "Anti-AFK: ON"
+    b.Text = "Anti-AFK: ACTIVE"
     b.TextColor3 = Color3.fromRGB(0, 255, 255)
 end)
