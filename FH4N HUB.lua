@@ -4,7 +4,7 @@ local Window = OrionLib:MakeWindow({
     HidePremium = false, 
     SaveConfig = true, 
     ConfigFolder = "FH4N_Config",
-    IntroText = "FN BIGRONE" -- Logo saat loading
+    IntroText = "FN BIGRONE" -- Hanya logo FN yang muncul saat loading
 })
 
 -- Variabel Global
@@ -15,6 +15,7 @@ local FlySpeed = 50
 local Flying = false
 local Noclip = false
 local InfJump = false
+local ESP_Enabled = false
 
 -- FUNGSI TELEPORT
 local function teleportToPlayer(targetName)
@@ -37,7 +38,7 @@ Player.Chatted:Connect(function(msg)
     end
 end)
 
--- TAB UTAMA (Logo FN)
+-- TAB UTAMA
 local MainTab = Window:MakeTab({
 	Name = "FN | Main",
 	Icon = "rbxassetid://4483345998"
@@ -97,19 +98,27 @@ MainTab:AddToggle({
 	Callback = function(Value) InfJump = Value end
 })
 
--- TAB EXTRA
+-- TAB VISUAL & TP
 local ExtraTab = Window:MakeTab({
 	Name = "FN | Extra",
 	Icon = "rbxassetid://4483345998"
 })
 
+ExtraTab:AddToggle({
+	Name = "Player ESP (Box)",
+	Default = false,
+	Callback = function(Value)
+		ESP_Enabled = Value
+	end
+})
+
 ExtraTab:AddInput({
 	Name = "TP ke Player",
-	PlaceholderText = "Username...",
+	PlaceholderText = "Ketik nama...",
 	Callback = function(Text) teleportToPlayer(Text) end
 })
 
--- LOOP LOGIC
+-- LOGIC LOOP (Noclip, Jump, ESP)
 RunService.Stepped:Connect(function()
 	if Noclip and Player.Character then
 		for _, v in pairs(Player.Character:GetDescendants()) do
@@ -122,6 +131,27 @@ game:GetService("UserInputService").JumpRequest:Connect(function()
 	if InfJump and Player.Character and Player.Character:FindFirstChild("Humanoid") then
 		Player.Character.Humanoid:ChangeState("Jumping")
 	end
+end)
+
+-- ESP Box Render
+task.spawn(function()
+    while task.wait() do
+        if ESP_Enabled then
+            for _, p in pairs(game.Players:GetPlayers()) do
+                if p ~= Player and p.Character and p.Character:FindFirstChild("Highlight") == nil then
+                    local hl = Instance.new("Highlight", p.Character)
+                    hl.FillTransparency = 1
+                    hl.OutlineColor = Color3.fromRGB(255, 0, 0)
+                end
+            end
+        else
+            for _, p in pairs(game.Players:GetPlayers()) do
+                if p.Character and p.Character:FindFirstChild("Highlight") then
+                    p.Character.Highlight:Destroy()
+                end
+            end
+        end
+    end
 end)
 
 OrionLib:Init()
