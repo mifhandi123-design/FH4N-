@@ -1,4 +1,4 @@
--- FH4N HUB - Versi Terorganisir (Category Player)
+-- FH4N HUB - Versi Realistis Graphics Update
 if game.CoreGui:FindFirstChild("FH4N_FINAL") then game.CoreGui.FH4N_FINAL:Destroy() end
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -54,7 +54,7 @@ Container.Parent = MainFrame
 Container.Position = UDim2.new(0, 10, 0, 45)
 Container.Size = UDim2.new(1, -20, 1, -55)
 Container.BackgroundTransparency = 1
-Container.CanvasSize = UDim2.new(0, 0, 0, 850)
+Container.CanvasSize = UDim2.new(0, 0, 0, 950)
 Container.ScrollBarThickness = 2
 local Layout = Instance.new("UIListLayout", Container)
 Layout.Padding = UDim.new(0, 8)
@@ -63,7 +63,6 @@ MinimizeBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = not MainFrame.Visible
 end)
 
--- --- FUNGSI PEMBUAT LABEL KATEGORI ---
 local function CreateLabel(text)
     local lbl = Instance.new("TextLabel", Container)
     lbl.Size = UDim2.new(1, 0, 0, 30)
@@ -74,7 +73,6 @@ local function CreateLabel(text)
     lbl.TextSize = 15
 end
 
--- --- FUNGSI CREATE TOGGLE ---
 local function CreateToggle(name, callback)
     local btn = Instance.new("TextButton", Container)
     btn.Size = UDim2.new(1, 0, 0, 38)
@@ -82,7 +80,7 @@ local function CreateToggle(name, callback)
     btn.Text = name .. ": OFF"
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.SourceSansBold
-    btn.TextSize = 14
+    btn.TextSize = 13
     Instance.new("UICorner", btn)
     local enabled = false
     btn.MouseButton1Click:Connect(function()
@@ -94,11 +92,10 @@ local function CreateToggle(name, callback)
 end
 
 -- ==========================================
--- KELOMPOK: PLAYER FEATURES
+-- PLAYER FEATURES
 -- ==========================================
 CreateLabel("PLAYER FEATURES")
 
--- 1. SPEED
 local SpeedInput = Instance.new("TextBox", Container)
 SpeedInput.Size = UDim2.new(1, 0, 0, 38)
 SpeedInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -117,7 +114,6 @@ SpeedInput.FocusLost:Connect(function(enter)
     end
 end)
 
--- 2. FLY ANALOG
 local Flying = false
 CreateToggle("Fly Analog (Full Dir)", function(state)
     Flying = state
@@ -146,15 +142,12 @@ CreateToggle("Fly Analog (Full Dir)", function(state)
     end
 end)
 
--- 3. NOCLIP
 local NoclipEnabled = false
 CreateToggle("Noclip (Tembus)", function(state) NoclipEnabled = state end)
 
--- 4. INF JUMP
 local InfJumpEnabled = false
 CreateToggle("Infinite Jump", function(state) InfJumpEnabled = state end)
 
--- 5. TELEPORT
 local TPInput = Instance.new("TextBox", Container)
 TPInput.Size = UDim2.new(1, 0, 0, 38)
 TPInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -175,21 +168,55 @@ TPInput.FocusLost:Connect(function(enter)
 end)
 
 -- ==========================================
--- KELOMPOK: OTHERS (RTX & ESP)
+-- VISUAL & OTHERS
 -- ==========================================
 CreateLabel("VISUAL & OTHERS")
 
-CreateToggle("RTX 5080 Graphics", function(state)
+-- FITUR GRAFIK REALISTIS
+CreateToggle("Realistic Graphics", function(state)
     local Lighting = game:GetService("Lighting")
     if state then
-        Lighting.Brightness = 2
+        Lighting.Brightness = 2.5
+        Lighting.ExposureCompensation = 0.5
+        Lighting.GlobalShadows = true
+        
+        local sky = Instance.new("Sky", Lighting)
+        sky.Name = "RealisticSky"
+        sky.SkyboxBk = "rbxassetid://600830446"
+        sky.SkyboxDn = "rbxassetid://600831635"
+        sky.SkyboxFt = "rbxassetid://600832720"
+        sky.SkyboxLf = "rbxassetid://600833863"
+        sky.SkyboxRt = "rbxassetid://600834935"
+        sky.SkyboxUp = "rbxassetid://600836904"
+        sky.SunAngularSize = 10
+        
+        local atmosphere = Instance.new("Atmosphere", Lighting)
+        atmosphere.Name = "RealisticAtmos"
+        atmosphere.Density = 0.3
+        atmosphere.Offset = 0.2
+        atmosphere.Color = Color3.fromRGB(190, 190, 190)
+        atmosphere.Decay = Color3.fromRGB(100, 100, 100)
+        atmosphere.Glare = 0.5
+        atmosphere.Haze = 2
+    else
+        if Lighting:FindFirstChild("RealisticSky") then Lighting.RealisticSky:Destroy() end
+        if Lighting:FindFirstChild("RealisticAtmos") then Lighting.RealisticAtmos:Destroy() end
+        Lighting.Brightness = 1
+        Lighting.ExposureCompensation = 0
+    end
+end)
+
+CreateToggle("RTX 5080 Effects", function(state)
+    local Lighting = game:GetService("Lighting")
+    if state then
         local Bloom = Instance.new("BloomEffect", Lighting) Bloom.Name = "RTX_B"
+        Bloom.Intensity = 0.5
         local ColorCorr = Instance.new("ColorCorrectionEffect", Lighting) ColorCorr.Name = "RTX_C"
-        ColorCorr.Contrast = 0.2
+        ColorCorr.Contrast = 0.15
+        ColorCorr.Saturation = 0.15
     else
         if Lighting:FindFirstChild("RTX_B") then Lighting.RTX_B:Destroy() end
         if Lighting:FindFirstChild("RTX_C") then Lighting.RTX_C:Destroy() end
-        Lighting.Brightness = 1
     end
 end)
 
