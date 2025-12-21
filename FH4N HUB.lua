@@ -1,6 +1,7 @@
 --[[
     FH4N HUB - OFFICIAL
-    Features: Fly, Speed, InfJump, Noclip, Anti-AFK, Server Finder, Anti-Hit, TP Search
+    Fitur: Fly, Speed, Infinite Jump, Noclip, Anti-AFK, Anti-Hit, TP Search, Join Small Server
+    Status: No Close Button, Server Finder at Bottom
 ]]
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -24,7 +25,7 @@ local flySpeed = 60
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MainFrame.Position = UDim2.new(0.5, -100, 0.5, -150)
-MainFrame.Size = UDim2.new(0, 220, 0, 420)
+MainFrame.Size = UDim2.new(0, 220, 0, 400)
 MainFrame.Active = true
 MainFrame.Draggable = true
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
@@ -43,7 +44,7 @@ Instance.new("UIStroke", LogoFN).Color = Color3.fromRGB(0, 255, 255)
 
 Container.Parent = MainFrame
 Container.Position = UDim2.new(0, 10, 0, 50)
-Container.Size = UDim2.new(1, -20, 1, -100)
+Container.Size = UDim2.new(1, -20, 1, -60)
 Container.BackgroundTransparency = 1
 Container.ScrollBarThickness = 0
 local Layout = Instance.new("UIListLayout", Container)
@@ -72,7 +73,7 @@ local function AddBtn(txt, color, cb)
     return b
 end
 
--- --- FITUR TELEPORT SEARCH ---
+-- --- 1. TELEPORT ---
 AddLabel("TELEPORT")
 local TPSearch = Instance.new("TextBox", Container)
 TPSearch.Size = UDim2.new(1, 0, 0, 38)
@@ -89,18 +90,15 @@ tpStroke.Thickness = 1
 
 TPSearch.FocusLost:Connect(function(enterPressed)
     if enterPressed then
-        local targetName = TPSearch.Text:lower()
-        -- Menghapus [tp:] jika user mengetiknya manual
-        targetName = targetName:gsub("%[tp:", ""):gsub("%]", "")
-        
+        local targetName = TPSearch.Text:lower():gsub("%[tp:", ""):gsub("%]", "")
         for _, player in pairs(Players:GetPlayers()) do
             if player.Name:lower():sub(1, #targetName) == targetName or player.DisplayName:lower():sub(1, #targetName) == targetName then
                 local myChar = Players.LocalPlayer.Character
                 local targetChar = player.Character
                 if myChar and targetChar and targetChar:FindFirstChild("HumanoidRootPart") then
                     myChar.HumanoidRootPart.CFrame = targetChar.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
-                    TPSearch.Text = "Teleported to " .. player.DisplayName
-                    task.wait(2)
+                    TPSearch.Text = "Teleported!"
+                    task.wait(1)
                     TPSearch.Text = ""
                     break
                 end
@@ -109,7 +107,7 @@ TPSearch.FocusLost:Connect(function(enterPressed)
     end
 end)
 
--- --- CATEGORIES LAIN ---
+-- --- 2. COMBAT ---
 AddLabel("COMBAT")
 AddBtn("Anti-Hit: OFF", nil, function(b)
     ahOn = not ahOn
@@ -117,6 +115,7 @@ AddBtn("Anti-Hit: OFF", nil, function(b)
     b.TextColor3 = ahOn and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(255, 255, 255)
 end)
 
+-- --- 3. MOVEMENT ---
 AddLabel("MOVEMENT")
 AddBtn("Fly: OFF", nil, function(b)
     flying = not flying
@@ -125,8 +124,10 @@ AddBtn("Fly: OFF", nil, function(b)
     if flying and p.Character then
         local root = p.Character:WaitForChild("HumanoidRootPart")
         local bv = Instance.new("BodyVelocity", root)
+        bv.Name = "FlyVel"
         bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
         local bg = Instance.new("BodyGyro", root)
+        bg.Name = "FlyGy"
         bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
         task.spawn(function()
             while flying do
@@ -147,6 +148,29 @@ AddBtn("Speed: OFF", nil, function(b)
     b.Text = sOn and "Speed: ON" or "Speed: OFF"
 end)
 
+AddBtn("Infinite Jump: OFF", nil, function(b)
+    ijOn = not ijOn
+    b.Text = ijOn and "InfJump: ON" or "InfJump: OFF"
+    b.TextColor3 = ijOn and Color3.fromRGB(0, 255, 255) or Color3.fromRGB(255, 255, 255)
+end)
+
+-- --- 4. UTILITY ---
+AddLabel("UTILITY")
+AddBtn("Noclip: OFF", nil, function(b)
+    ncOn = not ncOn
+    b.Text = ncOn and "Noclip: ON" or "Noclip: OFF"
+end)
+
+AddBtn("Anti-AFK", nil, function(b)
+    game.Players.LocalPlayer.Idled:Connect(function()
+        game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        wait(1)
+        game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    end)
+    b.Text = "Anti-AFK: ON"
+end)
+
+-- --- 5. SERVER ---
 AddLabel("SERVER")
 AddBtn("Join Small Server", Color3.fromRGB(0, 120, 200), function(b)
     b.Text = "Searching..."
@@ -163,20 +187,6 @@ AddBtn("Join Small Server", Color3.fromRGB(0, 120, 200), function(b)
     end
 end)
 
-AddLabel("UTILITY")
-AddBtn("Noclip: OFF", nil, function(b)
-    ncOn = not ncOn
-    b.Text = ncOn and "Noclip: ON" or "Noclip: OFF"
-end)
-
-AddBtn("CLOSE HUB", Color3.fromRGB(120, 0, 0), function()
-    flying = false
-    sOn = false
-    ahOn = false
-    if Players.LocalPlayer.Character then Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16 end
-    ScreenGui:Destroy()
-end)
-
 -- --- BACKGROUND LOGIC ---
 RunService.Stepped:Connect(function()
     local char = Players.LocalPlayer.Character
@@ -190,11 +200,17 @@ RunService.Stepped:Connect(function()
     end
 end)
 
+-- Logika Infinite Jump
 UserInputService.JumpRequest:Connect(function()
-    if ijOn then Players.LocalPlayer.Character.Humanoid:ChangeState("Jumping") end
+    if ijOn then
+        local char = Players.LocalPlayer.Character
+        if char and char:FindFirstChildOfClass("Humanoid") then
+            char:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+        end
+    end
 end)
 
--- Minimize
+-- Minimize Logic
 local minBtn = Instance.new("TextButton", MainFrame)
 minBtn.Size = UDim2.new(0, 30, 0, 30)
 minBtn.Position = UDim2.new(1, -35, 0, 7)
