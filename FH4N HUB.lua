@@ -1,69 +1,122 @@
--- FH4N HUB Script (Mobile Optimized)
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("FH4N HUB (Mobile)", "DarkTheme")
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local Window = OrionLib:MakeWindow({Name = "FH4N HUB", HidePremium = false, SaveConfig = true, ConfigFolder = "FH4NHubConfig"})
 
--- Variabel Utama
+-- Variabel
 local Player = game.Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local Camera = workspace.CurrentCamera
+local Flying = false
+local FlySpeed = 50
+local NoclipEnabled = false
+local InfiniteJumpEnabled = false
 
 -- Tab Utama
-local MainTab = Window:NewTab("Main Features")
-local Section = MainTab:NewSection("Player Cheats")
+local MainTab = Window:MakeTab({
+	Name = "Features",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
 
--- [1] FEATURE: SPEED
-Section:NewSlider("Walkspeed", "Ubah kecepatan jalan", 500, 16, function(s)
-    if Player.Character and Player.Character:FindFirstChild("Humanoid") then
-        Player.Character.Humanoid.WalkSpeed = s
-    end
-end)
+-- Fitur Speed
+MainTab:AddSlider({
+	Name = "Walkspeed",
+	Min = 16,
+	Max = 300,
+	Default = 16,
+	Color = Color3.fromRGB(255,255,255),
+	Increment = 1,
+	ValueName = "Speed",
+	Callback = function(Value)
+		if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+			Player.Character.Humanoid.WalkSpeed = Value
+		end
+	end    
+})
 
--- [2] FEATURE: INFINITE JUMP
-local InfiniteJumpEnabled = false
+-- Fitur Infinite Jump
+MainTab:AddToggle({
+	Name = "Infinite Jump",
+	Default = false,
+	Callback = function(Value)
+		InfiniteJumpEnabled = Value
+	end    
+})
+
 game:GetService("UserInputService").JumpRequest:Connect(function()
 	if InfiniteJumpEnabled and Player.Character and Player.Character:FindFirstChild("Humanoid") then
 		Player.Character.Humanoid:ChangeState("Jumping")
 	end
 end)
 
-Section:NewToggle("Infinite Jump", "Lompat tanpa batas", function(state)
-    InfiniteJumpEnabled = state
-end)
+-- Fitur Noclip
+MainTab:AddToggle({
+	Name = "Noclip",
+	Default = false,
+	Callback = function(Value)
+		NoclipEnabled = Value
+	end    
+})
 
--- [3] FEATURE: NOCLIP
-local NoclipEnabled = false
 RunService.Stepped:Connect(function()
-    if NoclipEnabled and Player.Character then
-        for _, v in pairs(Player.Character:GetDescendants()) do
-            if v:IsA("BasePart") then
-                v.CanCollide = false
-            end
-        end
-    end
+	if NoclipEnabled and Player.Character then
+		for _, v in pairs(Player.Character:GetDescendants()) do
+			if v:IsA("BasePart") then
+				v.CanCollide = false
+			end
+		end
+	end
 end)
 
-Section:NewToggle("Noclip", "Menembus tembok", function(state)
-    NoclipEnabled = state
-end)
+-- Fitur Fly (Mobile Friendly)
+MainTab:AddToggle({
+	Name = "Fly (Arah Kamera)",
+	Default = false,
+	Callback = function(Value)
+		Flying = Value
+		local Char = Player.Character
+		if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
+		local Root = Char.HumanoidRootPart
 
--- [4] FEATURE: MOBILE FLY (Arah Kamera)
-local Flying = false
-local FlySpeed = 50
+		if Flying then
+			local bv = Instance.new("BodyVelocity")
+			bv.Name = "FH4N_Fly"
+			bv.Parent = Root
+			bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+			bv.Velocity = Vector3.new(0,0,0)
 
-Section:NewSlider("Fly Speed", "Kecepatan terbang", 200, 10, function(v)
-    FlySpeed = v
-end)
+			local bg = Instance.new("BodyGyro")
+			bg.Name = "FH4N_Gyro"
+			bg.Parent = Root
+			bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+			bg.CFrame = Root.CFrame
 
-Section:NewToggle("Fly (Mobile)", "Terbang ke arah kamera", function(state)
-    Flying = state
-    local Char = Player.Character
-    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
-    
-    local Root = Char.HumanoidRootPart
-    
-    if Flying then
-        -- Menghilangkan gravitasi sementara
-        local bv = Instance.new("BodyVelocity")
+			task.spawn(function()
+				while Flying and Char:FindFirstChild("HumanoidRootPart") do
+					bv.Velocity = Camera.CFrame.LookVector * FlySpeed
+					bg.CFrame = Camera.CFrame
+					RunService.RenderStepped:Wait()
+				end
+				bv:Destroy()
+				bg:Destroy()
+			end)
+		end
+	end    
+})
+
+MainTab:AddSlider({
+	Name = "Fly Speed",
+	Min = 10,
+	Max = 300,
+	Default = 50,
+	Color = Color3.fromRGB(0,255,0),
+	Increment = 1,
+	ValueName = "Speed",
+	Callback = function(Value)
+		FlySpeed = Value
+	end    
+})
+
+OrionLib:Init()        local bv = Instance.new("BodyVelocity")
         bv.Name = "FH4N_Fly"
         bv.Parent = Root
         bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
