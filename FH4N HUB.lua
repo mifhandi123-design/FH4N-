@@ -1,4 +1,4 @@
--- FH4N HUB - Versi Perbaikan Semua Fitur Muncul
+-- FH4N HUB - Fitur Lengkap + ESP NAME
 if game.CoreGui:FindFirstChild("FH4N_FINAL") then game.CoreGui.FH4N_FINAL:Destroy() end
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -54,17 +54,15 @@ Container.Parent = MainFrame
 Container.Position = UDim2.new(0, 10, 0, 45)
 Container.Size = UDim2.new(1, -20, 1, -55)
 Container.BackgroundTransparency = 1
-Container.CanvasSize = UDim2.new(0, 0, 0, 500) -- Memastikan area scroll cukup luas
+Container.CanvasSize = UDim2.new(0, 0, 0, 600) -- Ukuran scroll ditambah
 Container.ScrollBarThickness = 2
 local Layout = Instance.new("UIListLayout", Container)
 Layout.Padding = UDim.new(0, 8)
-Layout.SortOrder = Enum.SortOrder.LayoutOrder
 
 MinimizeBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = not MainFrame.Visible
 end)
 
--- --- FUNGSI CREATE TOGGLE ---
 local function CreateToggle(name, callback)
     local btn = Instance.new("TextButton", Container)
     btn.Size = UDim2.new(1, 0, 0, 38)
@@ -74,7 +72,6 @@ local function CreateToggle(name, callback)
     btn.Font = Enum.Font.SourceSansBold
     btn.TextSize = 14
     Instance.new("UICorner", btn)
-
     local enabled = false
     btn.MouseButton1Click:Connect(function()
         enabled = not enabled
@@ -84,69 +81,102 @@ local function CreateToggle(name, callback)
     end)
 end
 
--- --- 1. FITUR SPEED ---
+-- --- 1. SPEED ---
 local SpeedInput = Instance.new("TextBox", Container)
 SpeedInput.Size = UDim2.new(1, 0, 0, 38)
 SpeedInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 SpeedInput.PlaceholderText = "Set Speed (Ketik & Enter)"
 SpeedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedInput.Font = Enum.Font.SourceSans
 Instance.new("UICorner", SpeedInput)
 
-local FlySpeed = 50
+local CurrentFlySpeed = 50
 SpeedInput.FocusLost:Connect(function(enter)
     if enter then
         local num = tonumber(SpeedInput.Text)
         if num then 
             game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = num 
-            FlySpeed = num
+            CurrentFlySpeed = num
         end
     end
 end)
 
--- --- 2. FITUR FLY ANALOG ---
+-- --- 2. FLY ANALOG ---
 local Flying = false
-CreateToggle("Fly Analog", function(state)
+CreateToggle("Fly Analog (Full Dir)", function(state)
     Flying = state
     local char = game.Players.LocalPlayer.Character
     local root = char:FindFirstChild("HumanoidRootPart")
     local hum = char:FindFirstChildOfClass("Humanoid")
-    
+    local cam = workspace.CurrentCamera
     if Flying and root and hum then
         local bv = Instance.new("BodyVelocity", root)
-        bv.Name = "FlyVel"
         bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        
         local bg = Instance.new("BodyGyro", root)
-        bg.Name = "FlyGyro"
         bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-        
         task.spawn(function()
             while Flying and char.Parent do
                 local moveDir = hum.MoveDirection
                 if moveDir.Magnitude > 0 then
-                    bv.Velocity = moveDir * FlySpeed
+                    bv.Velocity = (cam.CFrame.LookVector * (moveDir.Magnitude)) * CurrentFlySpeed
                 else
                     bv.Velocity = Vector3.new(0, 0.1, 0)
                 end
-                bg.CFrame = workspace.CurrentCamera.CFrame
+                bg.CFrame = cam.CFrame
                 task.wait()
             end
-            if bv then bv:Destroy() end
-            if bg then bg:Destroy() end
+            bv:Destroy() bg:Destroy()
         end)
     end
 end)
 
--- --- 3. FITUR NOCLIP ---
+-- --- 3. ESP NAME (NEW) ---
+local ESP_Enabled = false
+CreateToggle("Player ESP Name", function(state)
+    ESP_Enabled = state
+end)
+
+task.spawn(function()
+    while task.wait(0.5) do
+        for _, p in pairs(game.Players:GetPlayers()) do
+            if p ~= game.Players.LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+                local head = p.Character.Head
+                local tag = head:FindFirstChild("FN_ESP_TAG")
+                
+                if ESP_Enabled then
+                    if not tag then
+                        local bb = Instance.new("BillboardGui", head)
+                        bb.Name = "FN_ESP_TAG"
+                        bb.Size = UDim2.new(0, 100, 0, 50)
+                        bb.AlwaysOnTop = true
+                        bb.ExtentsOffset = Vector3.new(0, 3, 0)
+                        
+                        local lbl = Instance.new("TextLabel", bb)
+                        lbl.Size = UDim2.new(1, 0, 1, 0)
+                        lbl.BackgroundTransparency = 1
+                        lbl.TextColor3 = Color3.fromRGB(255, 255, 255) -- Warna Putih
+                        lbl.TextStrokeTransparency = 0
+                        lbl.TextStrokeColor3 = Color3.fromRGB(0, 0, 0) -- Outline Hitam
+                        lbl.Font = Enum.Font.SourceSansBold
+                        lbl.TextSize = 14
+                        lbl.Text = p.DisplayName or p.Name
+                    end
+                else
+                    if tag then tag:Destroy() end
+                end
+            end
+        end
+    end
+end)
+
+-- --- 4. NOCLIP ---
 local NoclipEnabled = false
 CreateToggle("Noclip", function(state) NoclipEnabled = state end)
 
--- --- 4. FITUR INF JUMP ---
+-- --- 5. INF JUMP ---
 local InfJumpEnabled = false
 CreateToggle("Infinite Jump", function(state) InfJumpEnabled = state end)
 
--- --- 5. FITUR TELEPORT ---
+-- --- 6. TELEPORT ---
 local TPInput = Instance.new("TextBox", Container)
 TPInput.Size = UDim2.new(1, 0, 0, 38)
 TPInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
@@ -166,7 +196,7 @@ TPInput.FocusLost:Connect(function(enter)
     end
 end)
 
--- --- LOOP SISTEM (Noclip & InfJump) ---
+-- --- LOOPS ---
 game:GetService("RunService").Stepped:Connect(function()
     if NoclipEnabled and game.Players.LocalPlayer.Character then
         for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
