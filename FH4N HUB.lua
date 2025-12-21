@@ -1,168 +1,90 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-local Window = Rayfield:CreateWindow({
-   Name = "FH4N HUB",
-   LoadingTitle = "FN BIGRONE",
-   LoadingSubtitle = "", 
-   ConfigurationSaving = { Enabled = false },
-   CustomTheme = {
-       HeaderColor = Color3.fromRGB(0, 0, 255), -- Header Biru
-       AccentColor = Color3.fromRGB(0, 0, 255),
-   }
-})
+if game.CoreGui:FindFirstChild("FH4N_Fixed") then game.CoreGui.FH4N_Fixed:Destroy() end
 
--- --- SISTEM MINIMIZE "FN —" PERBAIKAN TOTAL ---
-local ScreenGui = Instance.new("ScreenGui")
-local MinimizeBtn = Instance.new("TextButton")
-local UICorner = Instance.new("UICorner")
-local UIStroke = Instance.new("UIStroke")
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+ScreenGui.Name = "FH4N_Fixed"
 
-ScreenGui.Name = "FN_System_Fixed"
-ScreenGui.Parent = game.CoreGui
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+local MainFrame = Instance.new("Frame", ScreenGui)
+local Header = Instance.new("Frame", MainFrame)
+local Title = Instance.new("TextLabel", Header)
+local Container = Instance.new("ScrollingFrame", MainFrame)
+local MinimizeBtn = Instance.new("TextButton", ScreenGui)
 
-MinimizeBtn.Name = "FN_Toggle"
-MinimizeBtn.Parent = ScreenGui
-MinimizeBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 255) -- Latar Biru
-MinimizeBtn.Position = UDim2.new(0.05, 0, 0.4, 0) -- Posisi kiri tengah agar tidak mengganggu
+-- 1. SETUP TOMBOL MINIMIZE (FN —)
+MinimizeBtn.Name = "MinimizeBtn"
 MinimizeBtn.Size = UDim2.new(0, 70, 0, 40)
+MinimizeBtn.Position = UDim2.new(0.05, 0, 0.4, 0)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 255) -- Biru
+MinimizeBtn.Text = "FN —"
+MinimizeBtn.TextColor3 = Color3.fromRGB(0, 0, 0) -- Hitam
+MinimizeBtn.TextSize = 18
 MinimizeBtn.Font = Enum.Font.SourceSansBold
-MinimizeBtn.Text = "FN —" 
-MinimizeBtn.TextColor3 = Color3.fromRGB(0, 0, 0) -- Tulisan Hitam
-MinimizeBtn.TextSize = 20
+MinimizeBtn.Draggable = true
 MinimizeBtn.Active = true
-MinimizeBtn.Draggable = true 
+local CornerBtn = Instance.new("UICorner", MinimizeBtn)
 
-UICorner.CornerRadius = UDim.new(0, 10)
-UICorner.Parent = MinimizeBtn
+-- 2. SETUP MENU UTAMA (Bisa Digeser)
+MainFrame.Size = UDim2.new(0, 250, 0, 300)
+MainFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Draggable = true
+MainFrame.Active = true
+local CornerMain = Instance.new("UICorner", MainFrame)
 
-UIStroke.Parent = MinimizeBtn
-UIStroke.Thickness = 2
-UIStroke.Color = Color3.fromRGB(255, 255, 255)
+Header.Size = UDim2.new(1, 0, 0, 40)
+Header.BackgroundColor3 = Color3.fromRGB(0, 0, 255) -- Biru
+local CornerHead = Instance.new("UICorner", Header)
 
--- Fungsi Toggle yang Memperbaiki Masalah "Sama Saja"
+Title.Size = UDim2.new(1, 0, 1, 0)
+Title.Text = "FH4N HUB | FN BIGRONE"
+Title.TextColor3 = Color3.fromRGB(0, 0, 0)
+Title.TextSize = 18
+Title.Font = Enum.Font.SourceSansBold
+Title.BackgroundTransparency = 1
+
+Container.Size = UDim2.new(1, -10, 1, -50)
+Container.Position = UDim2.new(0, 5, 0, 45)
+Container.BackgroundTransparency = 1
+Container.CanvasSize = UDim2.new(0, 0, 1.5, 0)
+local Layout = Instance.new("UIListLayout", Container)
+Layout.Padding = UDim.new(0, 5)
+
+-- 3. FUNGSI TOGGLE (MINIMIZE)
 MinimizeBtn.MouseButton1Click:Connect(function()
-    local rayfieldUI = game:GetService("CoreGui"):FindFirstChild("Rayfield")
-    if rayfieldUI then
-        -- Mencari Frame utama Rayfield untuk disembunyikan secara manual
-        for _, v in pairs(rayfieldUI:GetChildren()) do
-            if v:IsA("Frame") or v:IsA("CanvasGroup") then
-                v.Visible = not v.Visible
-            end
-        end
-    end
+    MainFrame.Visible = not MainFrame.Visible
 end)
 
--- --- FITUR SCRIPT ---
+-- 4. FITUR SCRIPT
+local function CreateButton(txt, cb)
+    local b = Instance.new("TextButton", Container)
+    b.Size = UDim2.new(1, 0, 0, 35)
+    b.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    b.Text = txt
+    b.TextColor3 = Color3.fromRGB(255, 255, 255)
+    b.Font = Enum.Font.SourceSans
+    b.TextSize = 16
+    Instance.new("UICorner", b)
+    b.MouseButton1Click:Connect(cb)
+end
+
 local Player = game.Players.LocalPlayer
-local Camera = workspace.CurrentCamera
-local RunService = game:GetService("RunService")
-local FlySpeed = 50
-local Flying = false
 local Noclip = false
 local InfJump = false
-local ESP_Enabled = false
 
-local MainTab = Window:CreateTab("FN | Features", 4483362458)
-local ExtraTab = Window:CreateTab("FN | Visual & TP", 4483362458)
-
-MainTab:CreateSlider({
-   Name = "WalkSpeed",
-   Range = {16, 500},
-   Increment = 1,
-   CurrentValue = 16,
-   Callback = function(Value)
-      if Player.Character and Player.Character:FindFirstChild("Humanoid") then
-         Player.Character.Humanoid.WalkSpeed = Value
-      end
-   end,
-})
-
-MainTab:CreateToggle({
-   Name = "Fly (Mobile)",
-   CurrentValue = false,
-   Callback = function(Value)
-      Flying = Value
-      local Root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-      if Flying and Root then
-         local bv = Instance.new("BodyVelocity", Root)
-         bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-         task.spawn(function()
-            while Flying and Root.Parent do
-               bv.Velocity = Camera.CFrame.LookVector * FlySpeed
-               RunService.RenderStepped:Wait()
-            end
-            if bv then bv:Destroy() end
-         end)
-      end
-   end,
-})
-
-MainTab:CreateToggle({
-   Name = "Noclip",
-   CurrentValue = false,
-   Callback = function(Value) Noclip = Value end
-})
-
-MainTab:CreateToggle({
-   Name = "Infinite Jump",
-   CurrentValue = false,
-   Callback = function(Value) InfJump = Value end,
-})
-
-ExtraTab:CreateToggle({
-   Name = "Player ESP (Nama)",
-   CurrentValue = false,
-   Callback = function(Value) ESP_Enabled = Value end,
-})
-
--- ESP Logic
-task.spawn(function()
-    while task.wait(1) do
-        if ESP_Enabled then
-            for _, p in pairs(game.Players:GetPlayers()) do
-                if p ~= Player and p.Character and p.Character:FindFirstChild("Head") then
-                    if not p.Character.Head:FindFirstChild("FN_Tag") then
-                        local bb = Instance.new("BillboardGui", p.Character.Head)
-                        bb.Name = "FN_Tag"
-                        bb.Size = UDim2.new(0, 200, 0, 50)
-                        bb.AlwaysOnTop = true
-                        bb.ExtentsOffset = Vector3.new(0, 3, 0)
-                        local lbl = Instance.new("TextLabel", bb)
-                        lbl.BackgroundTransparency = 1
-                        lbl.Size = UDim2.new(1, 0, 1, 0)
-                        lbl.Text = p.Name
-                        lbl.Font = Enum.Font.SourceSansBold
-                        lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-                        lbl.TextSize = 14
-                    end
-                end
-            end
-        else
-            for _, p in pairs(game.Players:GetPlayers()) do
-                if p.Character and p.Character.Head:FindFirstChild("FN_Tag") then
-                    p.Character.Head.FN_Tag:Destroy()
-                end
-            end
-        end
-    end
+CreateButton("Speed 100", function() Player.Character.Humanoid.WalkSpeed = 100 end)
+CreateButton("Normal Speed", function() Player.Character.Humanoid.WalkSpeed = 16 end)
+CreateButton("Noclip: OFF", function(b) 
+    Noclip = not Noclip 
+    script.Parent.Text = "Noclip: " .. (Noclip and "ON" or "OFF")
+end)
+CreateButton("Infinite Jump", function() InfJump = not InfJump end)
+CreateButton("TP Player (Cek Chat)", function() 
+    print("Gunakan chat 'tp:nama'")
 end)
 
-ExtraTab:CreateInput({
-   Name = "TP Player",
-   PlaceholderText = "Ketik Nama...",
-   Callback = function(Text)
-       local target = Text:lower()
-       for _, v in pairs(game.Players:GetPlayers()) do
-           if v.Name:lower():find(target) then
-               Player.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame
-           end
-       end
-   end,
-})
-
--- Sistem Noclip & Jump Loop
-RunService.Stepped:Connect(function()
+-- LOGIC LOOP
+game:GetService("RunService").Stepped:Connect(function()
     if Noclip and Player.Character then
         for _, v in pairs(Player.Character:GetDescendants()) do
             if v:IsA("BasePart") then v.CanCollide = false end
@@ -171,7 +93,16 @@ RunService.Stepped:Connect(function()
 end)
 
 game:GetService("UserInputService").JumpRequest:Connect(function()
-    if InfJump and Player.Character and Player.Character:FindFirstChild("Humanoid") then
-        Player.Character.Humanoid:ChangeState("Jumping")
+    if InfJump then Player.Character.Humanoid:ChangeState("Jumping") end
+end)
+
+Player.Chatted:Connect(function(msg)
+    if msg:sub(1,3) == "tp:" then
+        local t = msg:sub(4):lower()
+        for _, v in pairs(game.Players:GetPlayers()) do
+            if v.Name:lower():find(t) then
+                Player.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame
+            end
+        end
     end
 end)
