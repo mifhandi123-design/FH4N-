@@ -11,44 +11,49 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
--- --- FITUR MINIMIZE CUSTOM (LOGO FN —) ---
+-- --- SISTEM MINIMIZE "FN —" PERBAIKAN TOTAL ---
 local ScreenGui = Instance.new("ScreenGui")
 local MinimizeBtn = Instance.new("TextButton")
 local UICorner = Instance.new("UICorner")
 local UIStroke = Instance.new("UIStroke")
 
-ScreenGui.Name = "FN_Minimize_System"
+ScreenGui.Name = "FN_System_Fixed"
 ScreenGui.Parent = game.CoreGui
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-MinimizeBtn.Name = "FN_Minimize_Btn"
+MinimizeBtn.Name = "FN_Toggle"
 MinimizeBtn.Parent = ScreenGui
 MinimizeBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 255) -- Latar Biru
-MinimizeBtn.Position = UDim2.new(0.1, 0, 0.15, 0)
-MinimizeBtn.Size = UDim2.new(0, 60, 0, 45)
+MinimizeBtn.Position = UDim2.new(0.05, 0, 0.4, 0) -- Posisi kiri tengah agar tidak mengganggu
+MinimizeBtn.Size = UDim2.new(0, 70, 0, 40)
 MinimizeBtn.Font = Enum.Font.SourceSansBold
-MinimizeBtn.Text = "FN —" -- Logo FN dan simbol Minimize
+MinimizeBtn.Text = "FN —" 
 MinimizeBtn.TextColor3 = Color3.fromRGB(0, 0, 0) -- Tulisan Hitam
-MinimizeBtn.TextSize = 18
+MinimizeBtn.TextSize = 20
 MinimizeBtn.Active = true
-MinimizeBtn.Draggable = true -- Bisa digeser di layar mobile
+MinimizeBtn.Draggable = true 
 
-UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.CornerRadius = UDim.new(0, 10)
 UICorner.Parent = MinimizeBtn
 
 UIStroke.Parent = MinimizeBtn
 UIStroke.Thickness = 2
-UIStroke.Color = Color3.fromRGB(255, 255, 255) -- Outline Putih agar jelas
+UIStroke.Color = Color3.fromRGB(255, 255, 255)
 
+-- Fungsi Toggle yang Memperbaiki Masalah "Sama Saja"
 MinimizeBtn.MouseButton1Click:Connect(function()
-    local coreGui = game:GetService("CoreGui")
-    local rayfieldUI = coreGui:FindFirstChild("Rayfield")
+    local rayfieldUI = game:GetService("CoreGui"):FindFirstChild("Rayfield")
     if rayfieldUI then
-        rayfieldUI.Enabled = not rayfieldUI.Enabled
+        -- Mencari Frame utama Rayfield untuk disembunyikan secara manual
+        for _, v in pairs(rayfieldUI:GetChildren()) do
+            if v:IsA("Frame") or v:IsA("CanvasGroup") then
+                v.Visible = not v.Visible
+            end
+        end
     end
 end)
 
--- --- VARIABEL FITUR ---
+-- --- FITUR SCRIPT ---
 local Player = game.Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local RunService = game:GetService("RunService")
@@ -58,11 +63,9 @@ local Noclip = false
 local InfJump = false
 local ESP_Enabled = false
 
--- --- TABS ---
 local MainTab = Window:CreateTab("FN | Features", 4483362458)
 local ExtraTab = Window:CreateTab("FN | Visual & TP", 4483362458)
 
--- --- FITUR MAIN ---
 MainTab:CreateSlider({
    Name = "WalkSpeed",
    Range = {16, 500},
@@ -83,30 +86,16 @@ MainTab:CreateToggle({
       local Root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
       if Flying and Root then
          local bv = Instance.new("BodyVelocity", Root)
-         bv.Name = "FN_Fly_V"
          bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-         local bg = Instance.new("BodyGyro", Root)
-         bg.Name = "FN_Fly_G"
-         bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
          task.spawn(function()
             while Flying and Root.Parent do
                bv.Velocity = Camera.CFrame.LookVector * FlySpeed
-               bg.CFrame = Camera.CFrame
                RunService.RenderStepped:Wait()
             end
             if bv then bv:Destroy() end
-            if bg then bg:Destroy() end
          end)
       end
    end,
-})
-
-MainTab:CreateSlider({
-   Name = "Fly Speed",
-   Range = {10, 300},
-   Increment = 1,
-   CurrentValue = 50,
-   Callback = function(Value) FlySpeed = Value end,
 })
 
 MainTab:CreateToggle({
@@ -121,7 +110,6 @@ MainTab:CreateToggle({
    Callback = function(Value) InfJump = Value end,
 })
 
--- --- FITUR EXTRA (ESP & TP) ---
 ExtraTab:CreateToggle({
    Name = "Player ESP (Nama)",
    CurrentValue = false,
@@ -161,7 +149,7 @@ task.spawn(function()
 end)
 
 ExtraTab:CreateInput({
-   Name = "Teleport Player",
+   Name = "TP Player",
    PlaceholderText = "Ketik Nama...",
    Callback = function(Text)
        local target = Text:lower()
@@ -173,19 +161,7 @@ ExtraTab:CreateInput({
    end,
 })
 
--- Chat Command TP
-Player.Chatted:Connect(function(msg)
-    if msg:sub(1,3):lower() == "tp:" then
-        local target = msg:sub(4):lower()
-        for _, v in pairs(game.Players:GetPlayers()) do
-            if v.Name:lower():find(target) then
-                Player.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame
-            end
-        end
-    end
-end)
-
--- --- LOOP SISTEM ---
+-- Sistem Noclip & Jump Loop
 RunService.Stepped:Connect(function()
     if Noclip and Player.Character then
         for _, v in pairs(Player.Character:GetDescendants()) do
