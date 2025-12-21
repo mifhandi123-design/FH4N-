@@ -1,6 +1,6 @@
 --[[
-    FH4N HUB - OFFICIAL (FIX ANTI-HIT)
-    Fitur: Fly, Speed, Infinite Jump, Noclip, Anti-AFK, Anti-Hit (V2), TP Search, Join Small Server
+    FH4N HUB - OFFICIAL (GOD-MODE / ANTI-HIT V3)
+    Metode: Hitbox Desync & Velocity Manipulation
 ]]
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -39,7 +39,6 @@ LogoFN.Position = UDim2.new(0.05, 0, 0.4, 0)
 LogoFN.TextColor3 = Color3.fromRGB(0, 255, 255)
 LogoFN.Font = Enum.Font.GothamBold
 Instance.new("UICorner", LogoFN).CornerRadius = UDim.new(1, 0)
-Instance.new("UIStroke", LogoFN).Color = Color3.fromRGB(0, 255, 255)
 
 Container.Parent = MainFrame
 Container.Position = UDim2.new(0, 10, 0, 50)
@@ -49,7 +48,6 @@ Container.ScrollBarThickness = 0
 local Layout = Instance.new("UIListLayout", Container)
 Layout.Padding = UDim.new(0, 6)
 
--- --- UI HELPERS ---
 local function AddLabel(txt)
     local lbl = Instance.new("TextLabel", Container)
     lbl.Size = UDim2.new(1, 0, 0, 25)
@@ -72,7 +70,7 @@ local function AddBtn(txt, color, cb)
     return b
 end
 
--- --- 1. TELEPORT ---
+-- --- TELEPORT ---
 AddLabel("TELEPORT")
 local TPSearch = Instance.new("TextBox", Container)
 TPSearch.Size = UDim2.new(1, 0, 0, 38)
@@ -83,18 +81,14 @@ TPSearch.TextColor3 = Color3.fromRGB(255, 255, 255)
 TPSearch.Font = Enum.Font.GothamMedium
 TPSearch.TextSize = 14
 Instance.new("UICorner", TPSearch).CornerRadius = UDim.new(0, 8)
-Instance.new("UIStroke", TPSearch).Color = Color3.fromRGB(0, 255, 255)
 
 TPSearch.FocusLost:Connect(function(enterPressed)
     if enterPressed then
         local targetName = TPSearch.Text:lower():gsub("%[tp:", ""):gsub("%]", "")
         for _, player in pairs(Players:GetPlayers()) do
-            if player.Name:lower():sub(1, #targetName) == targetName or player.DisplayName:lower():sub(1, #targetName) == targetName then
-                local myChar = Players.LocalPlayer.Character
-                if myChar and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    myChar.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
-                    TPSearch.Text = "Teleported!"
-                    task.wait(1)
+            if player.Name:lower():find(targetName) or player.DisplayName:lower():find(targetName) then
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    Players.LocalPlayer.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
                     TPSearch.Text = ""
                     break
                 end
@@ -103,24 +97,30 @@ TPSearch.FocusLost:Connect(function(enterPressed)
     end
 end)
 
--- --- 2. COMBAT (FIXED ANTI-HIT) ---
+-- --- COMBAT (ANTI-HIT V3) ---
 AddLabel("COMBAT")
 AddBtn("Anti-Hit: OFF", nil, function(b)
     ahOn = not ahOn
     b.Text = ahOn and "Anti-Hit: ON" or "Anti-Hit: OFF"
     b.TextColor3 = ahOn and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(255, 255, 255)
     
-    local char = Players.LocalPlayer.Character
-    if char then
-        for _, v in pairs(char:GetDescendants()) do
-            if v:IsA("BasePart") then
-                v.CanTouch = not ahOn -- Mengatur touch detection
+    local lp = Players.LocalPlayer
+    task.spawn(function()
+        while ahOn do
+            RunService.Stepped:Wait()
+            if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+                -- Menghilangkan Hitbox dengan memindahkan RootPart sedikit ke bawah/samping
+                -- secara visual tetap di tempat, tapi secara hit detection server dia "out of sync"
+                local oldV = lp.Character.HumanoidRootPart.Velocity
+                lp.Character.HumanoidRootPart.Velocity = Vector3.new(0, -100, 0) -- Mengelabui server
+                RunService.RenderStepped:Wait()
+                lp.Character.HumanoidRootPart.Velocity = oldV
             end
         end
-    end
+    end)
 end)
 
--- --- 3. MOVEMENT ---
+-- --- MOVEMENT ---
 AddLabel("MOVEMENT")
 AddBtn("Fly: OFF", nil, function(b)
     flying = not flying
@@ -129,10 +129,8 @@ AddBtn("Fly: OFF", nil, function(b)
     if flying and p.Character then
         local root = p.Character:WaitForChild("HumanoidRootPart")
         local bv = Instance.new("BodyVelocity", root)
-        bv.Name = "FlyVel"
         bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
         local bg = Instance.new("BodyGyro", root)
-        bg.Name = "FlyGy"
         bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
         task.spawn(function()
             while flying do
@@ -153,31 +151,21 @@ AddBtn("Speed: OFF", nil, function(b)
     b.Text = sOn and "Speed: ON" or "Speed: OFF"
 end)
 
+-- --- UTILITY ---
+AddLabel("UTILITY")
 AddBtn("Infinite Jump: OFF", nil, function(b)
     ijOn = not ijOn
     b.Text = ijOn and "InfJump: ON" or "InfJump: OFF"
 end)
 
--- --- 4. UTILITY ---
-AddLabel("UTILITY")
 AddBtn("Noclip: OFF", nil, function(b)
     ncOn = not ncOn
     b.Text = ncOn and "Noclip: ON" or "Noclip: OFF"
 end)
 
-AddBtn("Anti-AFK", nil, function(b)
-    game.Players.LocalPlayer.Idled:Connect(function()
-        game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-        wait(1)
-        game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-    end)
-    b.Text = "Anti-AFK: ON"
-end)
-
--- --- 5. SERVER ---
+-- --- SERVER ---
 AddLabel("SERVER")
-AddBtn("Join Small Server", Color3.fromRGB(0, 120, 200), function(b)
-    b.Text = "Searching..."
+AddBtn("Join Small Server", Color3.fromRGB(0, 120, 200), function()
     local Api = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
     local raw = game:HttpGet(Api)
     local decoded = HttpService:JSONDecode(raw)
@@ -191,22 +179,11 @@ AddBtn("Join Small Server", Color3.fromRGB(0, 120, 200), function(b)
     end
 end)
 
--- --- BACKGROUND LOGIC (PERBAIKAN ANTI-HIT & NOCLIP) ---
+-- --- LOGICS ---
 RunService.Stepped:Connect(function()
-    local char = Players.LocalPlayer.Character
-    if char then
-        for _, v in pairs(char:GetChildren()) do
-            if v:IsA("BasePart") then
-                if ncOn then v.CanCollide = false end
-                -- Logika Anti-Hit Baru: Melepas TouchInterest
-                if ahOn then
-                    v.CanTouch = false
-                    local touch = v:FindFirstChildOfClass("TouchTransmitter")
-                    if touch then touch:Destroy() end
-                else
-                    v.CanTouch = true
-                end
-            end
+    if ncOn and Players.LocalPlayer.Character then
+        for _, v in pairs(Players.LocalPlayer.Character:GetDescendants()) do
+            if v:IsA("BasePart") then v.CanCollide = false end
         end
     end
 end)
@@ -217,7 +194,7 @@ UserInputService.JumpRequest:Connect(function()
     end
 end)
 
--- Minimize Logic
+-- Minimize
 local minBtn = Instance.new("TextButton", MainFrame)
 minBtn.Size = UDim2.new(0, 30, 0, 30)
 minBtn.Position = UDim2.new(1, -35, 0, 7)
