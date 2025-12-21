@@ -1,5 +1,7 @@
--- FH4N HUB | THE MASTER EDITION
-if game.CoreGui:FindFirstChild("FH4N_ULTRA") then game.CoreGui.FH4N_ULTRA:Destroy() end
+-- FH4N HUB | THE DEFINITIVE EDITION (ALL FEATURES)
+if game.CoreGui:FindFirstChild("FH4N_ULTIMATE") then 
+    game.CoreGui.FH4N_ULTIMATE:Destroy() 
+end
 
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -7,8 +9,9 @@ local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local LPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
+
 local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
-ScreenGui.Name = "FH4N_ULTRA"
+ScreenGui.Name = "FH4N_ULTIMATE"
 
 -- --- SISTEM DRAG ---
 local function MakeDraggable(gui)
@@ -40,20 +43,20 @@ local Header = Instance.new("Frame", MainFrame)
 Header.Size = UDim2.new(1, 0, 0, 50); Header.BackgroundColor3 = Color3.fromRGB(0, 0, 255); Instance.new("UICorner", Header)
 
 local Title = Instance.new("TextLabel", Header)
-Title.Size = UDim2.new(1, 0, 1, 0); Title.Text = "FH4N HUB | ALL-IN-ONE"; Title.TextColor3 = Color3.fromRGB(0, 0, 0); Title.Font = "SourceSansBold"; Title.TextSize = 20; Title.BackgroundTransparency = 1
+Title.Size = UDim2.new(1, 0, 1, 0); Title.Text = "FH4N HUB | ALL FEATURES"; Title.TextColor3 = Color3.fromRGB(0, 0, 0); Title.Font = "SourceSansBold"; Title.TextSize = 20; Title.BackgroundTransparency = 1
 
 local Container = Instance.new("ScrollingFrame", MainFrame)
-Container.Size = UDim2.new(1, -20, 1, -70); Container.Position = UDim2.new(0, 10, 0, 60); Container.BackgroundTransparency = 1; Container.CanvasSize = UDim2.new(0, 0, 0, 2500); Container.ScrollBarThickness = 3
+Container.Size = UDim2.new(1, -20, 1, -70); Container.Position = UDim2.new(0, 10, 0, 60); Container.BackgroundTransparency = 1; Container.CanvasSize = UDim2.new(0, 0, 0, 2600); Container.ScrollBarThickness = 3
 local Layout = Instance.new("UIListLayout", Container); Layout.Padding = UDim.new(0, 10)
 
--- --- LOGO FN ---
+-- --- LOGO FN (MINIMIZE) ---
 local MinimizeBtn = Instance.new("TextButton", ScreenGui)
 MinimizeBtn.Size = UDim2.new(0, 65, 0, 65); MinimizeBtn.Position = UDim2.new(0.05, 0, 0.2, 0); MinimizeBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 255); MinimizeBtn.Text = "FN"; MinimizeBtn.TextColor3 = Color3.fromRGB(0, 0, 0); MinimizeBtn.Font = "SourceSansBold"; MinimizeBtn.TextSize = 22
 Instance.new("UICorner", MinimizeBtn).CornerRadius = UDim.new(1, 0)
 MakeDraggable(MinimizeBtn)
 MinimizeBtn.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)
 
--- --- UI HELPERS ---
+-- --- UI CONSTRUCTORS ---
 local function CreateDropdown(name)
     local Frame = Instance.new("Frame", Container)
     Frame.Size = UDim2.new(1, 0, 0, 45); Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25); Frame.ClipsDescendants = true; Instance.new("UICorner", Frame)
@@ -64,7 +67,7 @@ local function CreateDropdown(name)
     local isOpen = false
     Button.MouseButton1Click:Connect(function()
         isOpen = not isOpen
-        Frame.Size = isOpen and UDim2.new(1, 0, 0, CL.AbsoluteContentSize.Y + 75) or UDim2.new(1, 0, 0, 45)
+        Frame.Size = isOpen and UDim2.new(1, 0, 0, CL.AbsoluteContentSize.Y + 80) or UDim2.new(1, 0, 0, 45)
         Button.Text = isOpen and "   [-] " .. name or "   [+] " .. name
     end)
     return Content
@@ -78,32 +81,32 @@ local function CreateToggle(name, parent, callback)
 end
 
 -- ==========================================
--- KATEGORI: PLAYER FEATURES (LENGKAP)
+-- 1. PLAYER FEATURES
 -- ==========================================
 local PlayerGrp = CreateDropdown("PLAYER FEATURES")
 
 CreateToggle("Unlock FPS", PlayerGrp, function(s) if s then setfpscap(999) else setfpscap(60) end end)
 
-local SpeedInput = Instance.new("TextBox", PlayerGrp)
-SpeedInput.Size = UDim2.new(0.95, 0, 0, 40); SpeedInput.PlaceholderText = "WalkSpeed (Enter)"; SpeedInput.BackgroundColor3 = Color3.fromRGB(45,45,45); SpeedInput.TextColor3 = Color3.fromRGB(255,255,255); Instance.new("UICorner", SpeedInput)
-SpeedInput.FocusLost:Connect(function(e) if e then _G.CurSpeed = tonumber(SpeedInput.Text) or 16; if LPlayer.Character then LPlayer.Character.Humanoid.WalkSpeed = _G.CurSpeed end end end)
+local SpeedInp = Instance.new("TextBox", PlayerGrp)
+SpeedInp.Size = UDim2.new(0.95, 0, 0, 40); SpeedInp.PlaceholderText = "WalkSpeed (Enter)"; SpeedInp.BackgroundColor3 = Color3.fromRGB(45,45,45); SpeedInp.TextColor3 = Color3.fromRGB(255,255,255); Instance.new("UICorner", SpeedInp)
+SpeedInp.FocusLost:Connect(function(e) if e then _G.WalkSpeed = tonumber(SpeedInp.Text) or 16 end end)
 
-local ZoomInput = Instance.new("TextBox", PlayerGrp)
-ZoomInput.Size = UDim2.new(0.95, 0, 0, 40); ZoomInput.PlaceholderText = "Max Zoom Distance"; ZoomInput.BackgroundColor3 = Color3.fromRGB(45,45,45); ZoomInput.TextColor3 = Color3.fromRGB(255,255,255); Instance.new("UICorner", ZoomInput)
-ZoomInput.FocusLost:Connect(function(e) if e then LPlayer.CameraMaxZoomDistance = tonumber(ZoomInput.Text) or 128 end end)
+local ZoomInp = Instance.new("TextBox", PlayerGrp)
+ZoomInp.Size = UDim2.new(0.95, 0, 0, 40); ZoomInp.PlaceholderText = "Max Zoom (e.g 500)"; ZoomInp.BackgroundColor3 = Color3.fromRGB(45,45,45); ZoomInp.TextColor3 = Color3.fromRGB(255,255,255); Instance.new("UICorner", ZoomInp)
+ZoomInp.FocusLost:Connect(function(e) if e then LPlayer.CameraMaxZoomDistance = tonumber(ZoomInp.Text) or 128 end end)
 
-CreateToggle("Fly Analog", PlayerGrp, function(s)
+CreateToggle("Fly Mode", PlayerGrp, function(s)
     _G.Flying = s
     if s and LPlayer.Character then
-        local root = LPlayer.Character.HumanoidRootPart
-        local bv = Instance.new("BodyVelocity", root); bv.MaxForce = Vector3.new(1e6, 1e6, 1e6); bv.Name = "FlyV"
-        local bg = Instance.new("BodyGyro", root); bg.MaxTorque = Vector3.new(1e6, 1e6, 1e6); bg.Name = "FlyG"
+        local root = LPlayer.Character:WaitForChild("HumanoidRootPart")
+        local bv = Instance.new("BodyVelocity", root); bv.MaxForce = Vector3.new(1e6,1e6,1e6); bv.Name = "F1"
+        local bg = Instance.new("BodyGyro", root); bg.MaxTorque = Vector3.new(1e6,1e6,1e6); bg.Name = "G1"
         task.spawn(function()
             while _G.Flying do
-                bv.Velocity = (Camera.CFrame.LookVector * (LPlayer.Character.Humanoid.MoveDirection.Magnitude > 0 and (_G.CurSpeed or 16) or 0)) + Vector3.new(0,0.1,0)
+                bv.Velocity = Camera.CFrame.LookVector * (LPlayer.Character.Humanoid.MoveDirection.Magnitude > 0 and (_G.WalkSpeed or 16) or 0)
                 bg.CFrame = Camera.CFrame; task.wait()
             end
-            if root:FindFirstChild("FlyV") then root.FlyV:Destroy() end; if root:FindFirstChild("FlyG") then root.FlyG:Destroy() end
+            bv:Destroy(); bg:Destroy()
         end)
     end
 end)
@@ -111,55 +114,88 @@ end)
 CreateToggle("Freecam (Smooth)", PlayerGrp, function(s)
     _G.Freecam = s
     if s then
-        local camPart = Instance.new("Part", workspace); camPart.Size = Vector3.new(1,1,1); camPart.Transparency = 1; camPart.CanCollide = false; camPart.Anchored = true; camPart.CFrame = Camera.CFrame; Camera.CameraSubject = camPart
+        local p = Instance.new("Part", workspace); p.Anchored = true; p.Transparency = 1; p.CFrame = Camera.CFrame; Camera.CameraSubject = p
         task.spawn(function()
             while _G.Freecam do
-                local speed = 1.5; local hum = LPlayer.Character and LPlayer.Character:FindFirstChildOfClass("Humanoid")
-                if hum and hum.MoveDirection.Magnitude > 0 then camPart.CFrame = camPart.CFrame * CFrame.new(hum.MoveDirection * speed) end
-                Camera.CFrame = camPart.CFrame; task.wait()
+                p.CFrame = p.CFrame * CFrame.new(LPlayer.Character.Humanoid.MoveDirection * 1.5)
+                Camera.CFrame = p.CFrame; task.wait()
             end
-            if LPlayer.Character then Camera.CameraSubject = LPlayer.Character:FindFirstChildOfClass("Humanoid") end; camPart:Destroy()
+            Camera.CameraSubject = LPlayer.Character.Humanoid; p:Destroy()
         end)
     end
 end)
 
-local TPInput = Instance.new("TextBox", PlayerGrp)
-TPInput.Size = UDim2.new(0.95, 0, 0, 40); TPInput.PlaceholderText = "TP to Player Name"; TPInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45); TPInput.TextColor3 = Color3.fromRGB(255, 255, 255); Instance.new("UICorner", TPInput)
-TPInput.FocusLost:Connect(function(e) if e then local target = TPInput.Text:lower(); for _, v in pairs(Players:GetPlayers()) do if v.Name:lower():find(target) or v.DisplayName:lower():find(target) then LPlayer.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame break end end end end)
+local TPInp = Instance.new("TextBox", PlayerGrp)
+TPInp.Size = UDim2.new(0.95, 0, 0, 40); TPInp.PlaceholderText = "TP to Name (Enter)"; TPInp.BackgroundColor3 = Color3.fromRGB(45,45,45); TPInp.TextColor3 = Color3.fromRGB(255,255,255); Instance.new("UICorner", TPInp)
+TPInp.FocusLost:Connect(function(e) if e then for _,v in pairs(Players:GetPlayers()) do if v.Name:lower():find(TPInp.Text:lower()) or v.DisplayName:lower():find(TPInp.Text:lower()) then LPlayer.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame break end end end end)
 
-CreateToggle("Infinite Jump", PlayerGrp, function(s) _G.InfJump = s end)
 CreateToggle("Noclip", PlayerGrp, function(s) _G.Noclip = s end)
+CreateToggle("Infinite Jump", PlayerGrp, function(s) _G.InfJump = s end)
 
 -- ==========================================
--- KATEGORI: VISUAL SETTINGS (RTX & REALISTIC)
+-- 2. VISUAL FEATURES
 -- ==========================================
 local VisualGrp = CreateDropdown("VISUAL SETTINGS")
 
 CreateToggle("REALISTIC LVL MAX", VisualGrp, function(s)
     if s then
-        local bloom = Instance.new("BloomEffect", Lighting); bloom.Name = "UB"; bloom.Intensity = 1
-        local sun = Instance.new("SunRaysEffect", Lighting); sun.Name = "US"; sun.Intensity = 0.1
-        local color = Instance.new("ColorCorrectionEffect", Lighting); color.Name = "UC"; color.Saturation = 0.2; color.Contrast = 0.1
+        local b = Instance.new("BloomEffect", Lighting); b.Name = "R1"; b.Intensity = 1
+        local c = Instance.new("ColorCorrectionEffect", Lighting); c.Name = "R2"; c.Saturation = 0.3; c.Contrast = 0.1
         Lighting.Brightness = 2.5
     else
-        if Lighting:FindFirstChild("UB") then Lighting.UB:Destroy() end; if Lighting:FindFirstChild("US") then Lighting.US:Destroy() end; if Lighting:FindFirstChild("UC") then Lighting.UC:Destroy() end
+        if Lighting:FindFirstChild("R1") then Lighting.R1:Destroy() end
+        if Lighting:FindFirstChild("R2") then Lighting.R2:Destroy() end
         Lighting.Brightness = 1
     end
 end)
 
-CreateToggle("Full Bright", VisualGrp, function(s)
-    if s then Lighting.Ambient = Color3.fromRGB(255,255,255); Lighting.OutdoorAmbient = Color3.fromRGB(255,255,255)
-    else Lighting.Ambient = Color3.fromRGB(127,127,127); Lighting.OutdoorAmbient = Color3.fromRGB(127,127,127) end
-end)
+CreateToggle("Full Bright", VisualGrp, function(s) Lighting.Ambient = s and Color3.new(1,1,1) or Color3.new(0.5,0.5,0.5) end)
 
 CreateToggle("Anti-Lag (Low GFX)", VisualGrp, function(s)
-    if s then for _, v in pairs(game:GetDescendants()) do if v:IsA("BasePart") then v.Material = "SmoothPlastic" end end; Lighting.GlobalShadows = false
+    if s then for _,v in pairs(game:GetDescendants()) do if v:IsA("BasePart") then v.Material = "SmoothPlastic" end end; Lighting.GlobalShadows = false
     else Lighting.GlobalShadows = true end
 end)
 
-CreateToggle("ESP Name", VisualGrp, function(s) _G.ESP = s end)
+CreateToggle("ESP Player Names", VisualGrp, function(s) _G.ESP = s end)
 
 -- ==========================================
+-- 3. WEATHER SETTINGS
+-- ==========================================
+local WeatherGrp = CreateDropdown("WEATHER SETTINGS")
+local function SetW(t, d)
+    Lighting.ClockTime = t
+    if Lighting:FindFirstChild("Atm") then Lighting.Atm:Destroy() end
+    local a = Instance.new("Atmosphere", Lighting); a.Name = "Atm"; a.Density = d
+end
+local wb1 = Instance.new("TextButton", WeatherGrp); wb1.Size = UDim2.new(0.95,0,0,35); wb1.Text = "☀️ Siang Realistis"; wb1.MouseButton1Click:Connect(function() SetW(14, 0.2) end)
+local wb2 = Instance.new("TextButton", WeatherGrp); wb2.Size = UDim2.new(0.95,0,0,35); wb2.Text = "🌙 Malam Cinematic"; wb2.MouseButton1Click:Connect(function() SetW(0, 0.1) end)
+local wb3 = Instance.new("TextButton", WeatherGrp); wb3.Size = UDim2.new(0.95,0,0,35); wb3.Text = "❄️ Salju / Fog"; wb3.MouseButton1Click:Connect(function() SetW(12, 0.5) end)
+
+-- --- LOOP SISTEM ---
+RunService.RenderStepped:Connect(function()
+    if LPlayer.Character and LPlayer.Character:FindFirstChild("Humanoid") then
+        if _G.WalkSpeed then LPlayer.Character.Humanoid.WalkSpeed = _G.WalkSpeed end
+        if _G.Noclip then for _,v in pairs(LPlayer.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end end
+    end
+end)
+
+UIS.JumpRequest:Connect(function()
+    if _G.InfJump and LPlayer.Character then LPlayer.Character.Humanoid:ChangeState(3) end
+end)
+
+task.spawn(function()
+    while task.wait(1) do
+        for _,p in pairs(Players:GetPlayers()) do
+            if p ~= LPlayer and p.Character and p.Character:FindFirstChild("Head") then
+                local tag = p.Character.Head:FindFirstChild("ESP_TAG")
+                if _G.ESP and not tag then
+                    local b = Instance.new("BillboardGui", p.Character.Head); b.Name = "ESP_TAG"; b.Size = UDim2.new(0,100,0,40); b.AlwaysOnTop = true
+                    local l = Instance.new("TextLabel", b); l.Size = UDim2.new(1,0,1,0); l.Text = p.DisplayName; l.TextColor3 = Color3.new(1,1,1); l.BackgroundTransparency = 1; l.Font = "SourceSansBold"
+                elseif not _G.ESP and tag then tag:Destroy() end
+            end
+        end
+    end
+end)-- ==========================================
 -- KATEGORI: WEATHER SETTINGS
 -- ==========================================
 local WeatherGrp = CreateDropdown("WEATHER SETTINGS")
