@@ -3,38 +3,42 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
    Name = "FH4N HUB",
    LoadingTitle = "FN BIGRONE",
-   LoadingSubtitle = "", -- Menghapus tulisan pembuat sesuai permintaan
-   ConfigurationSaving = {
-      Enabled = false
-   },
+   LoadingSubtitle = "", 
+   ConfigurationSaving = { Enabled = false },
    CustomTheme = {
        HeaderColor = Color3.fromRGB(0, 0, 255), -- Header Biru
        AccentColor = Color3.fromRGB(0, 0, 255),
    }
 })
 
--- --- FITUR MINIMIZE (LOGO FN) ---
+-- --- FITUR MINIMIZE CUSTOM (LOGO FN —) ---
 local ScreenGui = Instance.new("ScreenGui")
 local MinimizeBtn = Instance.new("TextButton")
 local UICorner = Instance.new("UICorner")
+local UIStroke = Instance.new("UIStroke")
 
 ScreenGui.Name = "FN_Minimize_System"
 ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-MinimizeBtn.Name = "FN_Logo"
+MinimizeBtn.Name = "FN_Minimize_Btn"
 MinimizeBtn.Parent = ScreenGui
-MinimizeBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 255) -- Biru
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 255) -- Latar Biru
 MinimizeBtn.Position = UDim2.new(0.1, 0, 0.15, 0)
-MinimizeBtn.Size = UDim2.new(0, 45, 0, 45)
+MinimizeBtn.Size = UDim2.new(0, 60, 0, 45)
 MinimizeBtn.Font = Enum.Font.SourceSansBold
-MinimizeBtn.Text = "FN"
-MinimizeBtn.TextColor3 = Color3.fromRGB(0, 0, 0) -- Tulisan FN Hitam
-MinimizeBtn.TextSize = 22
+MinimizeBtn.Text = "FN —" -- Logo FN dan simbol Minimize
+MinimizeBtn.TextColor3 = Color3.fromRGB(0, 0, 0) -- Tulisan Hitam
+MinimizeBtn.TextSize = 18
 MinimizeBtn.Active = true
-MinimizeBtn.Draggable = true -- Bisa digeser
+MinimizeBtn.Draggable = true -- Bisa digeser di layar mobile
 
-UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.CornerRadius = UDim.new(0, 8)
 UICorner.Parent = MinimizeBtn
+
+UIStroke.Parent = MinimizeBtn
+UIStroke.Thickness = 2
+UIStroke.Color = Color3.fromRGB(255, 255, 255) -- Outline Putih agar jelas
 
 MinimizeBtn.MouseButton1Click:Connect(function()
     local coreGui = game:GetService("CoreGui")
@@ -44,7 +48,7 @@ MinimizeBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- --- VARIABEL GLOBAL ---
+-- --- VARIABEL FITUR ---
 local Player = game.Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local RunService = game:GetService("RunService")
@@ -79,10 +83,10 @@ MainTab:CreateToggle({
       local Root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
       if Flying and Root then
          local bv = Instance.new("BodyVelocity", Root)
-         bv.Name = "FN_Velocity"
+         bv.Name = "FN_Fly_V"
          bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
          local bg = Instance.new("BodyGyro", Root)
-         bg.Name = "FN_Gyro"
+         bg.Name = "FN_Fly_G"
          bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
          task.spawn(function()
             while Flying and Root.Parent do
@@ -119,7 +123,7 @@ MainTab:CreateToggle({
 
 -- --- FITUR EXTRA (ESP & TP) ---
 ExtraTab:CreateToggle({
-   Name = "Player ESP (Name Tag)",
+   Name = "Player ESP (Nama)",
    CurrentValue = false,
    Callback = function(Value) ESP_Enabled = Value end,
 })
@@ -142,7 +146,6 @@ task.spawn(function()
                         lbl.Text = p.Name
                         lbl.Font = Enum.Font.SourceSansBold
                         lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-                        lbl.TextStrokeTransparency = 0
                         lbl.TextSize = 14
                     end
                 end
@@ -158,7 +161,7 @@ task.spawn(function()
 end)
 
 ExtraTab:CreateInput({
-   Name = "TP to Player",
+   Name = "Teleport Player",
    PlaceholderText = "Ketik Nama...",
    Callback = function(Text)
        local target = Text:lower()
@@ -170,7 +173,7 @@ ExtraTab:CreateInput({
    end,
 })
 
--- --- CHAT COMMAND TP (tp:nama) ---
+-- Chat Command TP
 Player.Chatted:Connect(function(msg)
     if msg:sub(1,3):lower() == "tp:" then
         local target = msg:sub(4):lower()
