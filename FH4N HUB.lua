@@ -1,154 +1,139 @@
--- FH4N HUB (Versi Perbaikan Speed & TP)
-if game.CoreGui:FindFirstChild("FH4N_Final") then game.CoreGui.FH4N_Final:Destroy() end
 
-local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
-ScreenGui.Name = "FH4N_Final"
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local Header = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local Container = Instance.new("ScrollingFrame")
+local MinimizeBtn = Instance.new("TextButton")
 
--- 1. TOMBOL MINIMIZE (FN —)
-local MinimizeBtn = Instance.new("TextButton", ScreenGui)
-MinimizeBtn.Size = UDim2.new(0, 70, 0, 40)
-MinimizeBtn.Position = UDim2.new(0.05, 0, 0.4, 0)
+-- Setup UI Utama
+ScreenGui.Name = "FH4N_FINAL"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ResetOnSpawn = false
+
+-- Tombol Minimize (FN —)
+MinimizeBtn.Name = "MinimizeBtn"
+MinimizeBtn.Parent = ScreenGui
 MinimizeBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
+MinimizeBtn.Position = UDim2.new(0.05, 0, 0.4, 0)
+MinimizeBtn.Size = UDim2.new(0, 70, 0, 40)
+MinimizeBtn.Font = Enum.Font.SourceSansBold
 MinimizeBtn.Text = "FN —"
 MinimizeBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
-MinimizeBtn.TextSize = 18
-MinimizeBtn.Font = Enum.Font.SourceSansBold
-MinimizeBtn.Draggable = true
+MinimizeBtn.TextSize = 20
 MinimizeBtn.Active = true
-Instance.new("UICorner", MinimizeBtn).CornerRadius = UDim.new(0, 10)
+MinimizeBtn.Draggable = true
+Instance.new("UICorner", MinimizeBtn)
 
--- 2. MENU UTAMA
-local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 260, 0, 320)
-MainFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
+-- Menu Utama
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-MainFrame.Draggable = true
+MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
+MainFrame.Size = UDim2.new(0, 260, 0, 320)
 MainFrame.Active = true
+MainFrame.Draggable = true
 Instance.new("UICorner", MainFrame)
 
-local Header = Instance.new("Frame", MainFrame)
-Header.Size = UDim2.new(1, 0, 0, 40)
+Header.Name = "Header"
+Header.Parent = MainFrame
 Header.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
+Header.Size = UDim2.new(1, 0, 0, 40)
 Instance.new("UICorner", Header)
 
-local Title = Instance.new("TextLabel", Header)
+Title.Parent = Header
 Title.Size = UDim2.new(1, 0, 1, 0)
 Title.Text = "FH4N HUB | FN BIGRONE"
 Title.TextColor3 = Color3.fromRGB(0, 0, 0)
-Title.TextSize = 16
 Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 18
 Title.BackgroundTransparency = 1
 
-local Container = Instance.new("ScrollingFrame", MainFrame)
-Container.Size = UDim2.new(1, -10, 1, -50)
-Container.Position = UDim2.new(0, 5, 0, 45)
+Container.Parent = MainFrame
+Container.Position = UDim2.new(0, 10, 0, 50)
+Container.Size = UDim2.new(1, -20, 1, -60)
 Container.BackgroundTransparency = 1
-Container.CanvasSize = UDim2.new(0, 0, 1.8, 0)
-Container.ScrollBarThickness = 2
+Container.CanvasSize = UDim2.new(0, 0, 2, 0)
+Container.ScrollBarThickness = 0
 local Layout = Instance.new("UIListLayout", Container)
 Layout.Padding = UDim.new(0, 10)
 
--- 3. FUNGSI TOGGLE MINIMIZE
+-- FUNGSI TOMBOL MINIMIZE
 MinimizeBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = not MainFrame.Visible
 end)
 
--- 4. FITUR SPEED (BISA DIATUR)
-local SpeedLabel = Instance.new("TextLabel", Container)
-SpeedLabel.Size = UDim2.new(1, 0, 0, 20)
-SpeedLabel.Text = "WalkSpeed: 16"
-SpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedLabel.BackgroundTransparency = 1
+-- --- FITUR SPEED (DIPERBAIKI) ---
+local SpeedTitle = Instance.new("TextLabel", Container)
+SpeedTitle.Size = UDim2.new(1, 0, 0, 20)
+SpeedTitle.Text = "Set WalkSpeed:"
+SpeedTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedTitle.BackgroundTransparency = 1
 
 local SpeedInput = Instance.new("TextBox", Container)
-SpeedInput.Size = UDim2.new(1, -10, 0, 35)
+SpeedInput.Size = UDim2.new(1, 0, 0, 40)
 SpeedInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-SpeedInput.PlaceholderText = "Masukkan Angka (16-500)..."
+SpeedInput.PlaceholderText = "Ketik angka (Contoh: 100)"
 SpeedInput.Text = ""
 SpeedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
 Instance.new("UICorner", SpeedInput)
 
-SpeedInput.FocusLost:Connect(function()
-    local val = tonumber(SpeedInput.Text)
-    if val then
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = val
-        SpeedLabel.Text = "WalkSpeed: " .. val
+SpeedInput.FocusLost:Connect(function(enter)
+    if enter then
+        local num = tonumber(SpeedInput.Text)
+        if num then
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = num
+        end
     end
 end)
 
--- 5. FITUR TELEPORT (PERBAIKAN)
-local TPLabel = Instance.new("TextLabel", Container)
-TPLabel.Size = UDim2.new(1, 0, 0, 20)
-TPLabel.Text = "Teleport Player"
-TPLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-TPLabel.BackgroundTransparency = 1
+-- --- FITUR TELEPORT (DIPERBAIKI) ---
+local TPTitle = Instance.new("TextLabel", Container)
+TPTitle.Size = UDim2.new(1, 0, 0, 20)
+TPTitle.Text = "Teleport Player:"
+TPTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+TPTitle.BackgroundTransparency = 1
 
 local TPInput = Instance.new("TextBox", Container)
-TPInput.Size = UDim2.new(1, -10, 0, 35)
+TPInput.Size = UDim2.new(1, 0, 0, 40)
 TPInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-TPInput.PlaceholderText = "Masukkan Nama Player..."
+TPInput.PlaceholderText = "Ketik Nama Player..."
 TPInput.Text = ""
 TPInput.TextColor3 = Color3.fromRGB(255, 255, 255)
 Instance.new("UICorner", TPInput)
 
-local function teleportTo(targetName)
-    targetName = targetName:lower()
+local function doTeleport(name)
     for _, v in pairs(game.Players:GetPlayers()) do
-        if v ~= game.Players.LocalPlayer and (v.Name:lower():find(targetName) or v.DisplayName:lower():find(targetName)) then
+        if v.Name:lower():find(name:lower()) or v.DisplayName:lower():find(name:lower()) then
             if v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
                 game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame
-                return
+                break
             end
         end
     end
 end
 
-TPInput.FocusLost:Connect(function()
-    if TPInput.Text ~= "" then
-        teleportTo(TPInput.Text)
+TPInput.FocusLost:Connect(function(enter)
+    if enter and TPInput.Text ~= "" then
+        doTeleport(TPInput.Text)
     end
 end)
 
--- 6. FITUR LAINNYA
-local function CreateToggle(txt, callback)
-    local btn = Instance.new("TextButton", Container)
-    btn.Size = UDim2.new(1, -10, 0, 35)
-    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    btn.Text = txt .. " [OFF]"
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Instance.new("UICorner", btn)
-    
-    local state = false
-    btn.MouseButton1Click:Connect(function()
-        state = not state
-        btn.Text = txt .. (state and " [ON]" or " [OFF]")
-        btn.BackgroundColor3 = state and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(45, 45, 45)
-        callback(state)
-    end)
-end
-
-local Noclip = false
-CreateToggle("Noclip", function(v) Noclip = v end)
-
-local InfJump = false
-CreateToggle("Infinite Jump", function(v) InfJump = v end)
-
--- LOGIC LOOP
-game:GetService("RunService").Stepped:Connect(function()
-    if Noclip and game.Players.LocalPlayer.Character then
-        for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-            if v:IsA("BasePart") then v.CanCollide = false end
-        end
-    end
+-- Tombol Reset Speed
+local ResetBtn = Instance.new("TextButton", Container)
+ResetBtn.Size = UDim2.new(1, 0, 0, 40)
+ResetBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+ResetBtn.Text = "Reset Speed (16)"
+ResetBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+Instance.new("UICorner", ResetBtn)
+ResetBtn.MouseButton1Click:Connect(function()
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
+    SpeedInput.Text = ""
 end)
 
-game:GetService("UserInputService").JumpRequest:Connect(function()
-    if InfJump then game.Players.LocalPlayer.Character.Humanoid:ChangeState("Jumping") end
-end)
-
--- CHAT COMMAND TP
+-- Chat Command TP
 game.Players.LocalPlayer.Chatted:Connect(function(msg)
     if msg:sub(1,3) == "tp:" then
-        teleportTo(msg:sub(4))
+        doTeleport(msg:sub(4))
     end
 end)
