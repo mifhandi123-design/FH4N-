@@ -1,4 +1,4 @@
--- FH4N HUB - Fitur Fly Analog & Stabil
+-- FH4N HUB - Versi Perbaikan Semua Fitur Muncul
 if game.CoreGui:FindFirstChild("FH4N_FINAL") then game.CoreGui.FH4N_FINAL:Destroy() end
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -32,7 +32,7 @@ MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
-MainFrame.Size = UDim2.new(0, 260, 0, 350)
+MainFrame.Size = UDim2.new(0, 260, 0, 320)
 MainFrame.Active = true
 MainFrame.Draggable = true
 Instance.new("UICorner", MainFrame)
@@ -51,120 +51,104 @@ Title.TextSize = 18
 Title.BackgroundTransparency = 1
 
 Container.Parent = MainFrame
-Container.Position = UDim2.new(0, 10, 0, 50)
-Container.Size = UDim2.new(1, -20, 1, -60)
+Container.Position = UDim2.new(0, 10, 0, 45)
+Container.Size = UDim2.new(1, -20, 1, -55)
 Container.BackgroundTransparency = 1
-Container.CanvasSize = UDim2.new(0, 0, 3, 0)
+Container.CanvasSize = UDim2.new(0, 0, 0, 500) -- Memastikan area scroll cukup luas
 Container.ScrollBarThickness = 2
 local Layout = Instance.new("UIListLayout", Container)
-Layout.Padding = UDim.new(0, 10)
+Layout.Padding = UDim.new(0, 8)
+Layout.SortOrder = Enum.SortOrder.LayoutOrder
 
 MinimizeBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = not MainFrame.Visible
 end)
 
--- --- FUNGSI TOGGLE ---
+-- --- FUNGSI CREATE TOGGLE ---
 local function CreateToggle(name, callback)
     local btn = Instance.new("TextButton", Container)
-    btn.Size = UDim2.new(1, 0, 0, 40)
+    btn.Size = UDim2.new(1, 0, 0, 38)
     btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
     btn.Text = name .. ": OFF"
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.SourceSansBold
-    btn.TextSize = 16
+    btn.TextSize = 14
     Instance.new("UICorner", btn)
 
     local enabled = false
     btn.MouseButton1Click:Connect(function()
         enabled = not enabled
         btn.Text = name .. ": " .. (enabled and "ON" or "OFF")
-        btn.BackgroundColor3 = enabled and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(45, 45, 45)
+        btn.BackgroundColor3 = enabled and Color3.fromRGB(0, 120, 0) or Color3.fromRGB(45, 45, 45)
         callback(enabled)
     end)
 end
 
--- --- FITUR FLY ANALOG ---
-local Flying = false
+-- --- 1. FITUR SPEED ---
+local SpeedInput = Instance.new("TextBox", Container)
+SpeedInput.Size = UDim2.new(1, 0, 0, 38)
+SpeedInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+SpeedInput.PlaceholderText = "Set Speed (Ketik & Enter)"
+SpeedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedInput.Font = Enum.Font.SourceSans
+Instance.new("UICorner", SpeedInput)
+
 local FlySpeed = 50
-CreateToggle("Fly (Analog Control)", function(state)
+SpeedInput.FocusLost:Connect(function(enter)
+    if enter then
+        local num = tonumber(SpeedInput.Text)
+        if num then 
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = num 
+            FlySpeed = num
+        end
+    end
+end)
+
+-- --- 2. FITUR FLY ANALOG ---
+local Flying = false
+CreateToggle("Fly Analog", function(state)
     Flying = state
     local char = game.Players.LocalPlayer.Character
     local root = char:FindFirstChild("HumanoidRootPart")
     local hum = char:FindFirstChildOfClass("Humanoid")
     
     if Flying and root and hum then
-        -- Menghilangkan gravitasi agar tidak jatuh
-        local bv = Instance.new("BodyVelocity")
-        bv.Name = "FlyVelocity"
-        bv.Parent = root
+        local bv = Instance.new("BodyVelocity", root)
+        bv.Name = "FlyVel"
         bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        bv.Velocity = Vector3.new(0, 0, 0)
         
-        local bg = Instance.new("BodyGyro")
+        local bg = Instance.new("BodyGyro", root)
         bg.Name = "FlyGyro"
-        bg.Parent = root
         bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-        bg.CFrame = root.CFrame
         
         task.spawn(function()
             while Flying and char.Parent do
-                -- Mengambil input dari Analog/Joystick
                 local moveDir = hum.MoveDirection
                 if moveDir.Magnitude > 0 then
                     bv.Velocity = moveDir * FlySpeed
                 else
-                    bv.Velocity = Vector3.new(0, 0.1, 0) -- Mengambang diam
+                    bv.Velocity = Vector3.new(0, 0.1, 0)
                 end
-                
                 bg.CFrame = workspace.CurrentCamera.CFrame
                 task.wait()
             end
-            bv:Destroy()
-            bg:Destroy()
+            if bv then bv:Destroy() end
+            if bg then bg:Destroy() end
         end)
     end
 end)
 
--- --- FITUR SPEED ---
-local SpeedInput = Instance.new("TextBox", Container)
-SpeedInput.Size = UDim2.new(1, 0, 0, 40)
-SpeedInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-SpeedInput.PlaceholderText = "Set Speed (Ketik & Enter)"
-SpeedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-Instance.new("UICorner", SpeedInput)
-
-SpeedInput.FocusLost:Connect(function(enter)
-    if enter then
-        local num = tonumber(SpeedInput.Text)
-        if num then 
-            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = num 
-            FlySpeed = num -- Fly Speed mengikuti WalkSpeed
-        end
-    end
-end)
-
--- --- NOCLIP & INFJUMP ---
+-- --- 3. FITUR NOCLIP ---
 local NoclipEnabled = false
-CreateToggle("Noclip (Tembus)", function(state) NoclipEnabled = state end)
+CreateToggle("Noclip", function(state) NoclipEnabled = state end)
 
+-- --- 4. FITUR INF JUMP ---
 local InfJumpEnabled = false
 CreateToggle("Infinite Jump", function(state) InfJumpEnabled = state end)
 
-game:GetService("RunService").Stepped:Connect(function()
-    if NoclipEnabled and game.Players.LocalPlayer.Character then
-        for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-            if v:IsA("BasePart") then v.CanCollide = false end
-        end
-    end
-end)
-
-game:GetService("UserInputService").JumpRequest:Connect(function()
-    if InfJumpEnabled then game.Players.LocalPlayer.Character.Humanoid:ChangeState("Jumping") end
-end)
-
--- --- TELEPORT ---
+-- --- 5. FITUR TELEPORT ---
 local TPInput = Instance.new("TextBox", Container)
-TPInput.Size = UDim2.new(1, 0, 0, 40)
+TPInput.Size = UDim2.new(1, 0, 0, 38)
 TPInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 TPInput.PlaceholderText = "TP Player (Nama & Enter)"
 TPInput.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -179,5 +163,20 @@ TPInput.FocusLost:Connect(function(enter)
                 break
             end
         end
+    end
+end)
+
+-- --- LOOP SISTEM (Noclip & InfJump) ---
+game:GetService("RunService").Stepped:Connect(function()
+    if NoclipEnabled and game.Players.LocalPlayer.Character then
+        for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+            if v:IsA("BasePart") then v.CanCollide = false end
+        end
+    end
+end)
+
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if InfJumpEnabled and game.Players.LocalPlayer.Character then
+        game.Players.LocalPlayer.Character.Humanoid:ChangeState("Jumping")
     end
 end)
