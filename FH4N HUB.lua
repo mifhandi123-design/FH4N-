@@ -1,4 +1,4 @@
--- FH4N HUB - Fitur Lengkap + RTX 5080 Graphics
+-- FH4N HUB - Versi Terorganisir (Category Player)
 if game.CoreGui:FindFirstChild("FH4N_FINAL") then game.CoreGui.FH4N_FINAL:Destroy() end
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -30,9 +30,9 @@ Instance.new("UICorner", MinimizeBtn)
 -- Menu Utama
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
-MainFrame.Size = UDim2.new(0, 260, 0, 320)
+MainFrame.Size = UDim2.new(0, 260, 0, 350)
 MainFrame.Active = true
 MainFrame.Draggable = true
 Instance.new("UICorner", MainFrame)
@@ -54,7 +54,7 @@ Container.Parent = MainFrame
 Container.Position = UDim2.new(0, 10, 0, 45)
 Container.Size = UDim2.new(1, -20, 1, -55)
 Container.BackgroundTransparency = 1
-Container.CanvasSize = UDim2.new(0, 0, 0, 750) -- Ditambah untuk fitur baru
+Container.CanvasSize = UDim2.new(0, 0, 0, 850)
 Container.ScrollBarThickness = 2
 local Layout = Instance.new("UIListLayout", Container)
 Layout.Padding = UDim.new(0, 8)
@@ -63,10 +63,22 @@ MinimizeBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = not MainFrame.Visible
 end)
 
+-- --- FUNGSI PEMBUAT LABEL KATEGORI ---
+local function CreateLabel(text)
+    local lbl = Instance.new("TextLabel", Container)
+    lbl.Size = UDim2.new(1, 0, 0, 30)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = "--- " .. text .. " ---"
+    lbl.TextColor3 = Color3.fromRGB(0, 0, 255)
+    lbl.Font = Enum.Font.SourceSansBold
+    lbl.TextSize = 15
+end
+
+-- --- FUNGSI CREATE TOGGLE ---
 local function CreateToggle(name, callback)
     local btn = Instance.new("TextButton", Container)
     btn.Size = UDim2.new(1, 0, 0, 38)
-    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     btn.Text = name .. ": OFF"
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.SourceSansBold
@@ -76,45 +88,21 @@ local function CreateToggle(name, callback)
     btn.MouseButton1Click:Connect(function()
         enabled = not enabled
         btn.Text = name .. ": " .. (enabled and "ON" or "OFF")
-        btn.BackgroundColor3 = enabled and Color3.fromRGB(0, 120, 0) or Color3.fromRGB(45, 45, 45)
+        btn.BackgroundColor3 = enabled and Color3.fromRGB(0, 100, 255) or Color3.fromRGB(40, 40, 40)
         callback(enabled)
     end)
 end
 
--- --- 1. FITUR RTX 5080 (GRAPHICS) ---
-CreateToggle("RTX 5080 Graphics", function(state)
-    if state then
-        local Lighting = game:GetService("Lighting")
-        Lighting.Brightness = 2
-        Lighting.GlobalShadows = true
-        Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
-        
-        local Bloom = Instance.new("BloomEffect", Lighting)
-        Bloom.Name = "RTX_Bloom"
-        Bloom.Intensity = 1
-        
-        local SunRays = Instance.new("SunRaysEffect", Lighting)
-        SunRays.Name = "RTX_Sun"
-        SunRays.Intensity = 0.1
-        
-        local ColorCorr = Instance.new("ColorCorrectionEffect", Lighting)
-        ColorCorr.Name = "RTX_Color"
-        ColorCorr.Contrast = 0.2
-        ColorCorr.Saturation = 0.2
-    else
-        local Lighting = game:GetService("Lighting")
-        if Lighting:FindFirstChild("RTX_Bloom") then Lighting.RTX_Bloom:Destroy() end
-        if Lighting:FindFirstChild("RTX_Sun") then Lighting.RTX_Sun:Destroy() end
-        if Lighting:FindFirstChild("RTX_Color") then Lighting.RTX_Color:Destroy() end
-        Lighting.Brightness = 1
-    end
-end)
+-- ==========================================
+-- KELOMPOK: PLAYER FEATURES
+-- ==========================================
+CreateLabel("PLAYER FEATURES")
 
--- --- 2. SPEED ---
+-- 1. SPEED
 local SpeedInput = Instance.new("TextBox", Container)
 SpeedInput.Size = UDim2.new(1, 0, 0, 38)
-SpeedInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-SpeedInput.PlaceholderText = "Set Speed (Enter)"
+SpeedInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+SpeedInput.PlaceholderText = "Set WalkSpeed (Enter)"
 SpeedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
 Instance.new("UICorner", SpeedInput)
 
@@ -129,7 +117,7 @@ SpeedInput.FocusLost:Connect(function(enter)
     end
 end)
 
--- --- 3. FLY ANALOG ---
+-- 2. FLY ANALOG
 local Flying = false
 CreateToggle("Fly Analog (Full Dir)", function(state)
     Flying = state
@@ -158,10 +146,57 @@ CreateToggle("Fly Analog (Full Dir)", function(state)
     end
 end)
 
--- --- 4. ESP NAME ---
+-- 3. NOCLIP
+local NoclipEnabled = false
+CreateToggle("Noclip (Tembus)", function(state) NoclipEnabled = state end)
+
+-- 4. INF JUMP
+local InfJumpEnabled = false
+CreateToggle("Infinite Jump", function(state) InfJumpEnabled = state end)
+
+-- 5. TELEPORT
+local TPInput = Instance.new("TextBox", Container)
+TPInput.Size = UDim2.new(1, 0, 0, 38)
+TPInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+TPInput.PlaceholderText = "TP to Player Name (Enter)"
+TPInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+Instance.new("UICorner", TPInput)
+
+TPInput.FocusLost:Connect(function(enter)
+    if enter and TPInput.Text ~= "" then
+        local name = TPInput.Text:lower()
+        for _, v in pairs(game.Players:GetPlayers()) do
+            if v.Name:lower():find(name) or v.DisplayName:lower():find(name) then
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame
+                break
+            end
+        end
+    end
+end)
+
+-- ==========================================
+-- KELOMPOK: OTHERS (RTX & ESP)
+-- ==========================================
+CreateLabel("VISUAL & OTHERS")
+
+CreateToggle("RTX 5080 Graphics", function(state)
+    local Lighting = game:GetService("Lighting")
+    if state then
+        Lighting.Brightness = 2
+        local Bloom = Instance.new("BloomEffect", Lighting) Bloom.Name = "RTX_B"
+        local ColorCorr = Instance.new("ColorCorrectionEffect", Lighting) ColorCorr.Name = "RTX_C"
+        ColorCorr.Contrast = 0.2
+    else
+        if Lighting:FindFirstChild("RTX_B") then Lighting.RTX_B:Destroy() end
+        if Lighting:FindFirstChild("RTX_C") then Lighting.RTX_C:Destroy() end
+        Lighting.Brightness = 1
+    end
+end)
+
 local ESP_Enabled = false
 CreateToggle("Player ESP Name", function(state) ESP_Enabled = state end)
 
+-- --- ESP LOGIC ---
 task.spawn(function()
     while task.wait(0.5) do
         for _, p in pairs(game.Players:GetPlayers()) do
@@ -189,35 +224,7 @@ task.spawn(function()
     end
 end)
 
--- --- 5. NOCLIP ---
-local NoclipEnabled = false
-CreateToggle("Noclip", function(state) NoclipEnabled = state end)
-
--- --- 6. INF JUMP ---
-local InfJumpEnabled = false
-CreateToggle("Infinite Jump", function(state) InfJumpEnabled = state end)
-
--- --- 7. TELEPORT ---
-local TPInput = Instance.new("TextBox", Container)
-TPInput.Size = UDim2.new(1, 0, 0, 38)
-TPInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-TPInput.PlaceholderText = "TP Player (Enter)"
-TPInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-Instance.new("UICorner", TPInput)
-
-TPInput.FocusLost:Connect(function(enter)
-    if enter and TPInput.Text ~= "" then
-        local name = TPInput.Text:lower()
-        for _, v in pairs(game.Players:GetPlayers()) do
-            if v.Name:lower():find(name) or v.DisplayName:lower():find(name) then
-                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame
-                break
-            end
-        end
-    end
-end)
-
--- --- LOOPS ---
+-- --- SYSTEM LOOPS ---
 game:GetService("RunService").Stepped:Connect(function()
     if NoclipEnabled and game.Players.LocalPlayer.Character then
         for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
