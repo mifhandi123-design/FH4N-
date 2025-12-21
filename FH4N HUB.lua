@@ -1,185 +1,94 @@
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+-- FH4N HUB Script (Mobile Optimized)
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("FH4N HUB (Mobile)", "DarkTheme")
 
-local Window = Fluent:CreateWindow({
-    Title = "FH4N Hub — Modern Edition",
-    SubTitle = "by Gemini",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 460),
-    Acrylic = true, -- Membuat efek blur transparan yang modern
-    Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.LeftControl -- Keybind default
-})
+-- Variabel Utama
+local Player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
 
--- [ FLOATING BUTTON UNTUK MOBILE ]
-local ScreenGui = Instance.new("ScreenGui")
-local ToggleButton = Instance.new("ImageButton")
-local UICorner = Instance.new("UICorner")
+-- Tab Utama
+local MainTab = Window:NewTab("Main Features")
+local Section = MainTab:NewSection("Player Cheats")
 
-ScreenGui.Name = "FH4N_MobileToggle"
-ScreenGui.Parent = game.CoreGui
-
-ToggleButton.Name = "GonIcon"
-ToggleButton.Parent = ScreenGui
-ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ToggleButton.Position = UDim2.new(0.1, 0, 0.2, 0)
-ToggleButton.Size = UDim2.new(0, 50, 0, 50)
-ToggleButton.Image = "rbxassetid://15335131557"
-ToggleButton.Draggable = true 
-
-UICorner.CornerRadius = UDim.new(1, 0)
-UICorner.Parent = ToggleButton
-
-ToggleButton.MouseButton1Click:Connect(function()
-    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
+-- [1] FEATURE: SPEED
+Section:NewSlider("Walkspeed", "Ubah kecepatan jalan", 500, 16, function(s)
+    if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+        Player.Character.Humanoid.WalkSpeed = s
+    end
 end)
 
--- [ VARIABLES ]
-local lp = game.Players.LocalPlayer
-local flying = false
-local flySpeed = 50
-local infJump = false
-local noclip = false
-local antiAfk = true
+-- [2] FEATURE: INFINITE JUMP
+local InfiniteJumpEnabled = false
+game:GetService("UserInputService").JumpRequest:Connect(function()
+	if InfiniteJumpEnabled and Player.Character and Player.Character:FindFirstChild("Humanoid") then
+		Player.Character.Humanoid:ChangeState("Jumping")
+	end
+end)
 
--- [ TABS ]
-local Tabs = {
-    Main = Window:AddTab({ Title = "Movement", Icon = "run" }),
-    Visual = Window:AddTab({ Title = "Visuals", Icon = "eye" }),
-    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
-}
+Section:NewToggle("Infinite Jump", "Lompat tanpa batas", function(state)
+    InfiniteJumpEnabled = state
+end)
 
--- --- MOVEMENT TAB ---
-Tabs.Main:AddParagraph({
-    Title = "Player Physics",
-    Content = "Atur pergerakan karakter kamu di sini."
-})
-
-local SpeedSlider = Tabs.Main:AddSlider("SpeedSlider", {
-    Title = "Walk Speed",
-    Description = "Mengatur kecepatan lari karakter",
-    Default = 16,
-    Min = 16,
-    Max = 500,
-    Rounding = 0,
-    Callback = function(Value)
-        if lp.Character and lp.Character:FindFirstChild("Humanoid") then
-            lp.Character.Humanoid.WalkSpeed = Value
+-- [3] FEATURE: NOCLIP
+local NoclipEnabled = false
+RunService.Stepped:Connect(function()
+    if NoclipEnabled and Player.Character then
+        for _, v in pairs(Player.Character:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.CanCollide = false
+            end
         end
     end
-})
+end)
 
-local JumpSlider = Tabs.Main:AddSlider("JumpSlider", {
-    Title = "Jump Power (High Jump)",
-    Description = "Mengatur ketinggian lompatan",
-    Default = 50,
-    Min = 50,
-    Max = 1000,
-    Rounding = 0,
-    Callback = function(Value)
-        if lp.Character and lp.Character:FindFirstChild("Humanoid") then
-            lp.Character.Humanoid.UseJumpPower = true
-            lp.Character.Humanoid.JumpPower = Value
-        end
-    end
-})
+Section:NewToggle("Noclip", "Menembus tembok", function(state)
+    NoclipEnabled = state
+end)
 
-Tabs.Main:AddDivider()
+-- [4] FEATURE: MOBILE FLY (Arah Kamera)
+local Flying = false
+local FlySpeed = 50
 
-local FlyToggle = Tabs.Main:AddToggle("FlyToggle", {Title = "Fly Mobile", Default = false })
-FlyToggle:OnChanged(function()
-    flying = FlyToggle.Value
-    if flying then
+Section:NewSlider("Fly Speed", "Kecepatan terbang", 200, 10, function(v)
+    FlySpeed = v
+end)
+
+Section:NewToggle("Fly (Mobile)", "Terbang ke arah kamera", function(state)
+    Flying = state
+    local Char = Player.Character
+    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
+    
+    local Root = Char.HumanoidRootPart
+    
+    if Flying then
+        -- Menghilangkan gravitasi sementara
+        local bv = Instance.new("BodyVelocity")
+        bv.Name = "FH4N_Fly"
+        bv.Parent = Root
+        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bv.Velocity = Vector3.new(0,0,0)
+        
+        local bg = Instance.new("BodyGyro")
+        bg.Name = "FH4N_Gyro"
+        bg.Parent = Root
+        bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        bg.CFrame = Root.CFrame
+
         task.spawn(function()
-            local root = lp.Character:WaitForChild("HumanoidRootPart")
-            local bv = Instance.new("BodyVelocity", root)
-            local bg = Instance.new("BodyGyro", root)
-            bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-            bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-            while flying and lp.Character do
-                bv.Velocity = workspace.CurrentCamera.CFrame.LookVector * flySpeed
-                bg.CFrame = workspace.CurrentCamera.CFrame
-                task.wait()
+            while Flying and Char:FindFirstChild("HumanoidRootPart") do
+                -- Di mobile, karakter akan terbang ke arah kamera menunjuk
+                bv.Velocity = Camera.CFrame.LookVector * FlySpeed
+                bg.CFrame = Camera.CFrame
+                RunService.RenderStepped:Wait()
             end
-            bv:Destroy() bg:Destroy()
-        end)
-    end
-end)
-
-Tabs.Main:AddSlider("FlySpeed", {
-    Title = "Fly Speed",
-    Default = 50, Min = 10, Max = 300, Rounding = 0,
-    Callback = function(v) flySpeed = v end
-})
-
-local InfJumpToggle = Tabs.Main:AddToggle("InfJump", {Title = "Infinite Jump", Default = false })
-InfJumpToggle:OnChanged(function() infJump = InfJumpToggle.Value end)
-
-local NoclipToggle = Tabs.Main:AddToggle("Noclip", {Title = "Noclip", Default = false })
-NoclipToggle:OnChanged(function() noclip = NoclipToggle.Value end)
-
--- --- VISUAL TAB ---
-local EspToggle = Tabs.Visual:AddToggle("EspToggle", {Title = "Player ESP (Name/Dist/Chams)", Default = false })
-EspToggle:OnChanged(function()
-    local val = EspToggle.Value
-    if val then
-        _G.ESP_Loop = game:GetService("RunService").RenderStepped:Connect(function()
-            for _, p in pairs(game.Players:GetPlayers()) do
-                if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                    if not p.Character:FindFirstChild("Highlight") then
-                        local h = Instance.new("Highlight", p.Character)
-                        h.FillColor = Color3.fromRGB(0, 255, 150)
-                    end
-                end
-            end
+            if bv then bv:Destroy() end
+            if bg then bg:Destroy() end
         end)
     else
-        if _G.ESP_Loop then _G.ESP_Loop:Disconnect() end
-        for _, p in pairs(game.Players:GetPlayers()) do
-            if p.Character and p.Character:FindFirstChild("Highlight") then
-                p.Character.Highlight:Destroy()
-            end
-        end
+        if Root:FindFirstChild("FH4N_Fly") then Root.FH4N_Fly:Destroy() end
+        if Root:FindFirstChild("FH4N_Gyro") then Root.FH4N_Gyro:Destroy() end
     end
 end)
 
--- --- SETTINGS ---
-Tabs.Settings:AddToggle("AntiAFK", {Title = "Anti-AFK System", Default = true }):OnChanged(function(v) antiAfk = v end)
-
-Tabs.Settings:AddButton({
-    Title = "Destroy Script",
-    Callback = function()
-        ScreenGui:Destroy()
-        Window:Destroy()
-    end
-})
-
--- [ LOGIC HANDLERS ]
-game:GetService("UserInputService").JumpRequest:Connect(function()
-    if infJump and lp.Character:FindFirstChildOfClass("Humanoid") then
-        lp.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
-    end
-end)
-
-game:GetService("RunService").Stepped:Connect(function()
-    if noclip and lp.Character then
-        for _, v in pairs(lp.Character:GetDescendants()) do
-            if v:IsA("BasePart") then v.CanCollide = false end
-        end
-    end
-end)
-
-lp.Idled:Connect(function()
-    if antiAfk then
-        game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-        task.wait(1)
-        game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-    end
-end)
-
-Fluent:Notify({
-    Title = "FH4N Hub Modern",
-    Content = "Script berhasil dijalankan!",
-    Duration = 5
-})
+Library:Notify("FH4N HUB Loaded!", "Gunakan Slider Fly untuk kontrol.", "rbxassetid://6023456806")
