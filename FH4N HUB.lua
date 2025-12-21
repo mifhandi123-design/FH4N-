@@ -1,4 +1,4 @@
--- FH4N HUB FINAL - Organized Categories
+-- FH4N HUB - FIX GROUPING
 if game.CoreGui:FindFirstChild("FH4N_FINAL") then game.CoreGui.FH4N_FINAL:Destroy() end
 
 local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
@@ -6,8 +6,7 @@ local MainFrame = Instance.new("Frame", ScreenGui)
 local Container = Instance.new("ScrollingFrame", MainFrame)
 local MinimizeBtn = Instance.new("TextButton", ScreenGui)
 
--- --- UI CONFIGURATION ---
-MainFrame.Name = "MainFrame"
+-- --- UI CONFIG ---
 MainFrame.Size = UDim2.new(0, 260, 0, 380)
 MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
@@ -22,7 +21,7 @@ Instance.new("UICorner", Header)
 
 local Title = Instance.new("TextLabel", Header)
 Title.Size = UDim2.new(1, 0, 1, 0)
-Title.Text = "FH4N HUB | FINAL"
+Title.Text = "FH4N HUB | VERSION 2.0"
 Title.TextColor3 = Color3.fromRGB(0, 0, 0)
 Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 16
@@ -31,7 +30,7 @@ Title.BackgroundTransparency = 1
 Container.Size = UDim2.new(1, -20, 1, -55)
 Container.Position = UDim2.new(0, 10, 0, 45)
 Container.BackgroundTransparency = 1
-Container.CanvasSize = UDim2.new(0, 0, 0, 1050)
+Container.CanvasSize = UDim2.new(0, 0, 0, 1100)
 Container.ScrollBarThickness = 2
 local Layout = Instance.new("UIListLayout", Container)
 Layout.Padding = UDim.new(0, 8)
@@ -45,15 +44,24 @@ MinimizeBtn.Draggable = true
 Instance.new("UICorner", MinimizeBtn)
 MinimizeBtn.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)
 
--- --- UTILITY FUNCTIONS ---
-local function CreateLabel(txt)
-    local l = Instance.new("TextLabel", Container)
-    l.Size = UDim2.new(1, 0, 0, 30)
-    l.Text = "--- " .. txt .. " ---"
-    l.TextColor3 = Color3.fromRGB(0, 150, 255)
-    l.BackgroundTransparency = 1
+-- --- HELPER: SECTION LABEL ---
+local function CreateSection(txt)
+    local frame = Instance.new("Frame", Container)
+    frame.Size = UDim2.new(1, 0, 0, 35)
+    frame.BackgroundTransparency = 1
+    
+    local line = Instance.new("Frame", frame)
+    line.Size = UDim2.new(1, 0, 0, 2)
+    line.Position = UDim2.new(0, 0, 1, 0)
+    line.BackgroundColor3 = Color3.fromRGB(0, 100, 255)
+    
+    local l = Instance.new("TextLabel", frame)
+    l.Size = UDim2.new(1, 0, 1, 0)
+    l.Text = txt
+    l.TextColor3 = Color3.fromRGB(255, 255, 255)
     l.Font = Enum.Font.SourceSansBold
-    l.TextSize = 15
+    l.TextSize = 16
+    l.BackgroundTransparency = 1
 end
 
 local function CreateToggle(name, callback)
@@ -74,15 +82,14 @@ local function CreateToggle(name, callback)
 end
 
 -- ==========================================
--- KATEGORI 1: PLAYER
+-- KELOMPOK: PLAYER
 -- ==========================================
-CreateLabel("PLAYER")
+CreateSection("PLAYER SETTINGS")
 
--- Speed
 local SpeedInput = Instance.new("TextBox", Container)
 SpeedInput.Size = UDim2.new(1, 0, 0, 38)
 SpeedInput.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-SpeedInput.PlaceholderText = "Set WalkSpeed (Enter)"
+SpeedInput.PlaceholderText = "Speed: 16 (Enter)"
 SpeedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
 Instance.new("UICorner", SpeedInput)
 
@@ -97,13 +104,12 @@ SpeedInput.FocusLost:Connect(function(enter)
     end
 end)
 
--- Fly
 local Flying = false
-CreateToggle("Fly Analog (Full Dir)", function(state)
+CreateToggle("Fly Analog", function(state)
     Flying = state
     local char = game.Players.LocalPlayer.Character
-    local root = char:FindFirstChild("HumanoidRootPart")
     local hum = char:FindFirstChildOfClass("Humanoid")
+    local root = char:FindFirstChild("HumanoidRootPart")
     local cam = workspace.CurrentCamera
     if Flying and root and hum then
         local bv = Instance.new("BodyVelocity", root)
@@ -126,19 +132,13 @@ CreateToggle("Fly Analog (Full Dir)", function(state)
     end
 end)
 
--- Noclip
-local NoclipEnabled = false
-CreateToggle("Noclip (Tembus)", function(s) NoclipEnabled = s end)
-
--- Infinite Jump
-local InfJumpEnabled = false
+CreateToggle("Noclip", function(s) NoclipEnabled = s end)
 CreateToggle("Infinite Jump", function(s) InfJumpEnabled = s end)
 
--- Teleport
 local TPInput = Instance.new("TextBox", Container)
 TPInput.Size = UDim2.new(1, 0, 0, 38)
 TPInput.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-TPInput.PlaceholderText = "TP to Player (Enter)"
+TPInput.PlaceholderText = "TP Name Player (Enter)"
 TPInput.TextColor3 = Color3.fromRGB(255, 255, 255)
 Instance.new("UICorner", TPInput)
 
@@ -155,48 +155,41 @@ TPInput.FocusLost:Connect(function(enter)
 end)
 
 -- ==========================================
--- KATEGORI 2: VISUAL
+-- KELOMPOK: VISUAL
 -- ==========================================
-CreateLabel("VISUAL")
+CreateSection("VISUAL SETTINGS")
 
--- RTX 5080
 CreateToggle("RTX 5080 Effects", function(state)
     local L = game:GetService("Lighting")
     if state then
-        local bl = Instance.new("BloomEffect", L); bl.Name = "RTX_B"; bl.Intensity = 0.5
-        local cc = Instance.new("ColorCorrectionEffect", L); cc.Name = "RTX_C"; cc.Contrast = 0.2
+        local bl = Instance.new("BloomEffect", L); bl.Name = "RTXB"; bl.Intensity = 0.5
+        local cc = Instance.new("ColorCorrectionEffect", L); cc.Name = "RTXC"; cc.Contrast = 0.2
     else
-        if L:FindFirstChild("RTX_B") then L.RTX_B:Destroy() end
-        if L:FindFirstChild("RTX_C") then L.RTX_C:Destroy() end
+        if L:FindFirstChild("RTXB") then L.RTXB:Destroy() end
+        if L:FindFirstChild("RTXC") then L.RTXC:Destroy() end
     end
 end)
 
--- PC PORT
-CreateToggle("PC Port (Shaders)", function(state)
+CreateToggle("PC Port (Extreme)", function(state)
     local L = game:GetService("Lighting")
     if state then
         L.Brightness = 2.5
-        local at = Instance.new("Atmosphere", L); at.Name = "PCP_A"; at.Density = 0.3
-        local sky = Instance.new("Sky", L); sky.Name = "PCP_S"; sky.SunAngularSize = 15
+        local at = Instance.new("Atmosphere", L); at.Name = "PCA"; at.Density = 0.35
     else
-        if L:FindFirstChild("PCP_A") then L.PCP_A:Destroy() end
-        if L:FindFirstChild("PCP_S") then L.PCP_S:Destroy() end
+        if L:FindFirstChild("PCA") then L.PCA:Destroy() end
         L.Brightness = 1
     end
 end)
 
--- Dynamic Shadow
-CreateToggle("Dynamic Shadow", function(state)
+CreateToggle("Dynamic Shadows", function(state)
     game:GetService("Lighting").GlobalShadows = state
     game:GetService("Lighting").EnvironmentDiffuseScale = state and 1 or 0
     game:GetService("Lighting").EnvironmentSpecularScale = state and 1 or 0
 end)
 
--- ESP Player
-local ESP_Enabled = false
 CreateToggle("ESP Player Name", function(s) ESP_Enabled = s end)
 
--- --- BACKGROUND LOOPS ---
+-- --- SYSTEM LOOPS (KEEP ACTIVE) ---
 game:GetService("RunService").Stepped:Connect(function()
     if NoclipEnabled and game.Players.LocalPlayer.Character then
         for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
@@ -217,7 +210,7 @@ task.spawn(function()
                 if ESP_Enabled and not tag then
                     local bb = Instance.new("BillboardGui", p.Character.Head)
                     bb.Name = "FN_ESP"; bb.Size = UDim2.new(0, 100, 0, 50); bb.AlwaysOnTop = true; bb.ExtentsOffset = Vector3.new(0, 3, 0)
-                    local lbl = Instance.new("TextLabel", bb); lbl.Size = UDim2.new(1, 0, 1, 0); lbl.BackgroundTransparency = 1; lbl.TextColor3 = Color3.fromRGB(255, 255, 255); lbl.TextStrokeTransparency = 0; lbl.Text = p.DisplayName or p.Name; lbl.Font = Enum.Font.SourceSansBold
+                    local lbl = Instance.new("TextLabel", bb); lbl.Size = UDim2.new(1, 0, 1, 0); lbl.BackgroundTransparency = 1; lbl.TextColor3 = Color3.fromRGB(255, 255, 255); lbl.TextStrokeTransparency = 0; lbl.Text = p.DisplayName or p.Name; lbl.Font = Enum.Font.SourceSansBold; lbl.TextSize = 12
                 elseif not ESP_Enabled and tag then tag:Destroy() end
             end
         end
