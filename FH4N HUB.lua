@@ -1,115 +1,119 @@
--- Memastikan jika ada UI lama akan terhapus
-if game.CoreGui:FindFirstChild("FH4NHUB_Mobile") then
-    game.CoreGui.FH4NHUB_Mobile:Destroy()
-end
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-local ScreenGui = Instance.new("ScreenGui")
-local MainFrame = Instance.new("Frame")
-local Header = Instance.new("Frame")
-local Title = Instance.new("TextLabel")
-local Container = Instance.new("ScrollingFrame")
-local UIListLayout = Instance.new("UIListLayout")
-
--- Setup UI Utama
-ScreenGui.Name = "FH4NHUB_Mobile"
-ScreenGui.Parent = game.CoreGui
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-MainFrame.Name = "MainFrame"
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-MainFrame.BorderSizePixel = 0
-MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
-MainFrame.Size = UDim2.new(0, 250, 0, 320)
-MainFrame.Active = true
-MainFrame.Draggable = true -- Bisa digeser di layar
-
--- Header Biru dengan Logo FN
-Header.Name = "Header"
-Header.Parent = MainFrame
-Header.BackgroundColor3 = Color3.fromRGB(0, 0, 255) -- BIRU
-Header.Size = UDim2.new(1, 0, 0, 45)
-
-Title.Name = "Title"
-Title.Parent = Header
-Title.Size = UDim2.new(1, 0, 1, 0)
-Title.Font = Enum.Font.SourceSansBold
-Title.Text = "FN BIGRONE | FH4N HUB" -- Nama Sesuai Permintaan
-Title.TextColor3 = Color3.fromRGB(0, 0, 0) -- TULISAN FN HITAM (Sesuai Permintaan)
-Title.TextSize = 20
-
-Container.Name = "Container"
-Container.Parent = MainFrame
-Container.BackgroundTransparency = 1
-Container.Position = UDim2.new(0, 5, 0, 50)
-Container.Size = UDim2.new(0, 240, 0, 260)
-Container.CanvasSize = UDim2.new(0, 0, 1.5, 0)
-Container.ScrollBarThickness = 4
-
-UIListLayout.Parent = Container
-UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-UIListLayout.Padding = UDim.new(0, 8)
-
--- Fungsi Membuat Button
-local function CreateButton(text, callback)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -10, 0, 40)
-    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    btn.Font = Enum.Font.SourceSansSemibold
-    btn.Text = text
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.TextSize = 16
-    btn.Parent = Container
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
-    corner.Parent = btn
-    
-    btn.MouseButton1Click:Connect(callback)
-    return btn
-end
+local Window = Rayfield:CreateWindow({
+   Name = "FH4N HUB",
+   LoadingTitle = "FN BIGRONE",
+   LoadingSubtitle = "", -- Menghapus tulisan "by Gemini"
+   ConfigurationSaving = {
+      Enabled = false
+   },
+   CustomTheme = {
+       HeaderColor = Color3.fromRGB(0, 0, 255), -- Header Biru
+       AccentColor = Color3.fromRGB(0, 0, 255),
+   }
+})
 
 -- Variabel Fitur
 local Player = game.Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local RunService = game:GetService("RunService")
+local FlySpeed = 50
 local Flying = false
 local Noclip = false
 local InfJump = false
-local SpeedActive = false
 
--- FITUR 1: SPEED
-CreateButton("Speed: 100 (Toggle)", function()
-    SpeedActive = not SpeedActive
-    if SpeedActive then
-        Player.Character.Humanoid.WalkSpeed = 100
-    else
-        Player.Character.Humanoid.WalkSpeed = 16
-    end
-end)
+-- TAB UTAMA (Logo FN)
+local MainTab = Window:CreateTab("FN | Features", 4483362458)
 
--- FITUR 2: FLY MOBILE
-CreateButton("Fly (Mobile)", function()
-    Flying = not Flying
-    local Root = Player.Character.HumanoidRootPart
-    if Flying then
-        local bv = Instance.new("BodyVelocity", Root)
-        bv.Name = "FN_Fly"
-        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        task.spawn(function()
-            while Flying do
-                bv.Velocity = workspace.CurrentCamera.CFrame.LookVector * 70
-                task.wait()
+MainTab:CreateSlider({
+   Name = "WalkSpeed",
+   Range = {16, 500},
+   Increment = 1,
+   CurrentValue = 16,
+   Callback = function(Value)
+      if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+         Player.Character.Humanoid.WalkSpeed = Value
+      end
+   end,
+})
+
+MainTab:CreateToggle({
+   Name = "Fly (Mobile)",
+   CurrentValue = false,
+   Callback = function(Value)
+      Flying = Value
+      local Root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+      if Flying and Root then
+         local bv = Instance.new("BodyVelocity", Root)
+         bv.Name = "FN_FlyBV"
+         bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+         local bg = Instance.new("BodyGyro", Root)
+         bg.Name = "FN_FlyBG"
+         bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+         task.spawn(function()
+            while Flying and Root.Parent do
+               bv.Velocity = Camera.CFrame.LookVector * FlySpeed
+               bg.CFrame = Camera.CFrame
+               RunService.RenderStepped:Wait()
             end
-            bv:Destroy()
-        end)
+            if bv then bv:Destroy() end
+            if bg then bg:Destroy() end
+         end)
+      end
+   end,
+})
+
+MainTab:CreateSlider({
+   Name = "Fly Speed",
+   Range = {10, 300},
+   Increment = 1,
+   CurrentValue = 50,
+   Callback = function(Value) FlySpeed = Value end,
+})
+
+MainTab:CreateToggle({
+   Name = "Noclip",
+   CurrentValue = false,
+   Callback = function(Value) Noclip = Value end
+})
+
+MainTab:CreateToggle({
+   Name = "Infinite Jump",
+   CurrentValue = false,
+   Callback = function(Value) InfJump = Value end,
+})
+
+-- TAB EXTRA
+local ExtraTab = Window:CreateTab("FN | Extra", 4483362458)
+
+ExtraTab:CreateInput({
+   Name = "Teleport Player",
+   PlaceholderText = "Username...",
+   Callback = function(Text)
+       local target = Text:lower()
+       for _, v in pairs(game.Players:GetPlayers()) do
+           if v.Name:lower():sub(1, #target) == target or v.DisplayName:lower():sub(1, #target) == target then
+               Player.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame
+           end
+       end
+   end,
+})
+
+-- Chat Command TP (tp:nama)
+Player.Chatted:Connect(function(msg)
+    local split = msg:split(":")
+    if split[1]:lower() == "tp" and split[2] then
+        local target = split[2]:lower()
+        for _, v in pairs(game.Players:GetPlayers()) do
+            if v.Name:lower():sub(1, #target) == target then
+                Player.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame
+            end
+        end
     end
 end)
 
--- FITUR 3: NOCLIP
-CreateButton("Noclip (Tembus)", function()
-    Noclip = not Noclip
-end)
-
-game:GetService("RunService").Stepped:Connect(function()
+-- Loop Fitur
+RunService.Stepped:Connect(function()
     if Noclip and Player.Character then
         for _, v in pairs(Player.Character:GetDescendants()) do
             if v:IsA("BasePart") then v.CanCollide = false end
@@ -117,35 +121,8 @@ game:GetService("RunService").Stepped:Connect(function()
     end
 end)
 
--- FITUR 4: INF JUMP
-CreateButton("Infinite Jump", function()
-    InfJump = not InfJump
-end)
-
 game:GetService("UserInputService").JumpRequest:Connect(function()
-    if InfJump then Player.Character.Humanoid:ChangeState("Jumping") end
-end)
-
--- FITUR 5: TELEPORT CHAT
-Player.Chatted:Connect(function(msg)
-    if msg:sub(1,3) == "tp:" then
-        local target = msg:sub(4):lower()
-        for _, v in pairs(game.Players:GetPlayers()) do
-            if v.Name:lower():find(target) then
-                Player.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame
-            end
-        end
+    if InfJump and Player.Character and Player.Character:FindFirstChild("Humanoid") then
+        Player.Character.Humanoid:ChangeState("Jumping")
     end
-end)
-
--- Tombol Close / Minimize
-local Close = Instance.new("TextButton", Header)
-Close.Text = "_"
-Close.Size = UDim2.new(0, 30, 0, 30)
-Close.Position = UDim2.new(1, -35, 0, 5)
-Close.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-Close.TextColor3 = Color3.fromRGB(255, 255, 255)
-Close.MouseButton1Click:Connect(function()
-    Container.Visible = not Container.Visible
-    if Container.Visible then MainFrame.Size = UDim2.new(0, 250, 0, 320) else MainFrame.Size = UDim2.new(0, 250, 0, 45) end
 end)
