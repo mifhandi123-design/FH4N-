@@ -1,6 +1,6 @@
 --[[
-    FH4N HUB - OFFICIAL (GOD-MODE / ANTI-HIT V3)
-    Metode: Hitbox Desync & Velocity Manipulation
+    FH4N HUB - OFFICIAL
+    Update: Auto Dodge set to 4 Meters
 ]]
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -17,14 +17,15 @@ ScreenGui.Parent = game.CoreGui
 ScreenGui.Name = "FH4N_Hub_Official"
 
 -- Global States
-local flying, sOn, ijOn, ncOn, ahOn = false, false, false, false, false
+local flying, sOn, ijOn, ncOn, ahOn, adOn = false, false, false, false, false, false
 local flySpeed = 60
+local dodgeDistance = 13 -- Ini setara dengan sekitar 4 meter dalam koordinat Roblox
 
 -- --- UI SETUP ---
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MainFrame.Position = UDim2.new(0.5, -100, 0.5, -150)
-MainFrame.Size = UDim2.new(0, 220, 0, 400)
+MainFrame.Size = UDim2.new(0, 220, 0, 420)
 MainFrame.Active = true
 MainFrame.Draggable = true
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
@@ -86,9 +87,9 @@ TPSearch.FocusLost:Connect(function(enterPressed)
     if enterPressed then
         local targetName = TPSearch.Text:lower():gsub("%[tp:", ""):gsub("%]", "")
         for _, player in pairs(Players:GetPlayers()) do
-            if player.Name:lower():find(targetName) or player.DisplayName:lower():find(targetName) then
+            if player ~= Players.LocalPlayer and (player.Name:lower():find(targetName) or player.DisplayName:lower():find(targetName)) then
                 if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    Players.LocalPlayer.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
+                    Players.LocalPlayer.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
                     TPSearch.Text = ""
                     break
                 end
@@ -97,27 +98,18 @@ TPSearch.FocusLost:Connect(function(enterPressed)
     end
 end)
 
--- --- COMBAT (ANTI-HIT V3) ---
+-- --- COMBAT ---
 AddLabel("COMBAT")
 AddBtn("Anti-Hit: OFF", nil, function(b)
     ahOn = not ahOn
     b.Text = ahOn and "Anti-Hit: ON" or "Anti-Hit: OFF"
     b.TextColor3 = ahOn and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(255, 255, 255)
-    
-    local lp = Players.LocalPlayer
-    task.spawn(function()
-        while ahOn do
-            RunService.Stepped:Wait()
-            if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
-                -- Menghilangkan Hitbox dengan memindahkan RootPart sedikit ke bawah/samping
-                -- secara visual tetap di tempat, tapi secara hit detection server dia "out of sync"
-                local oldV = lp.Character.HumanoidRootPart.Velocity
-                lp.Character.HumanoidRootPart.Velocity = Vector3.new(0, -100, 0) -- Mengelabui server
-                RunService.RenderStepped:Wait()
-                lp.Character.HumanoidRootPart.Velocity = oldV
-            end
-        end
-    end)
+end)
+
+AddBtn("Auto Dodge: OFF", nil, function(b)
+    adOn = not adOn
+    b.Text = adOn and "Auto Dodge: ON" or "Auto Dodge: OFF"
+    b.TextColor3 = adOn and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 255, 255)
 end)
 
 -- --- MOVEMENT ---
@@ -163,7 +155,7 @@ AddBtn("Noclip: OFF", nil, function(b)
     b.Text = ncOn and "Noclip: ON" or "Noclip: OFF"
 end)
 
--- --- SERVER ---
+-- --- SERVER (DIPINDAHKAN KE PALING BAWAH) ---
 AddLabel("SERVER")
 AddBtn("Join Small Server", Color3.fromRGB(0, 120, 200), function()
     local Api = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
@@ -179,11 +171,38 @@ AddBtn("Join Small Server", Color3.fromRGB(0, 120, 200), function()
     end
 end)
 
--- --- LOGICS ---
+-- --- LOOP LOGICS ---
 RunService.Stepped:Connect(function()
-    if ncOn and Players.LocalPlayer.Character then
-        for _, v in pairs(Players.LocalPlayer.Character:GetDescendants()) do
-            if v:IsA("BasePart") then v.CanCollide = false end
+    local lp = Players.LocalPlayer
+    if lp.Character then
+        if ncOn then
+            for _, v in pairs(lp.Character:GetDescendants()) do
+                if v:IsA("BasePart") then v.CanCollide = false end
+            end
+        end
+        
+        -- Logic Anti-Hit V3
+        if ahOn and lp.Character:FindFirstChild("HumanoidRootPart") then
+            local oldV = lp.Character.HumanoidRootPart.Velocity
+            lp.Character.HumanoidRootPart.Velocity = Vector3.new(0, -100, 0)
+            RunService.RenderStepped:Wait()
+            lp.Character.HumanoidRootPart.Velocity = oldV
+        end
+
+        -- Logic Auto Dodge (4 Meter Target)
+        if adOn and lp.Character:FindFirstChild("HumanoidRootPart") then
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= lp and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local distance = (lp.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                    -- 13 stud roblox kira-kira setara dengan 3.5 - 4 meter
+                    if distance < 13 then
+                        -- Berpindah posisi (Dash) sejauh 12 meter dari musuh
+                        local dashDir = (lp.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Unit
+                        lp.Character.HumanoidRootPart.CFrame = lp.Character.HumanoidRootPart.CFrame + (dashDir * 12)
+                        task.wait(0.05) -- Delay sangat singkat agar dodge lancar
+                    end
+                end
+            end
         end
     end
 end)
@@ -194,7 +213,7 @@ UserInputService.JumpRequest:Connect(function()
     end
 end)
 
--- Minimize
+-- Minimize Logic
 local minBtn = Instance.new("TextButton", MainFrame)
 minBtn.Size = UDim2.new(0, 30, 0, 30)
 minBtn.Position = UDim2.new(1, -35, 0, 7)
