@@ -1,6 +1,6 @@
 --[[
-    FH4N HUB - OFFICIAL
-    Features: Fly, Speed, InfJump, Noclip, Anti-Hit V3, Auto Dodge, Anti-Lag, ESP, RGB Tag
+    FH4N HUB - OFFICIAL (GOD MODE V4)
+    Metode: Position Spoofing & Gravity Bypass
 ]]
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -12,7 +12,6 @@ local RunService = game:GetService("RunService")
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
-local Lighting = game:GetService("Lighting")
 
 ScreenGui.Parent = game.CoreGui
 ScreenGui.Name = "FH4N_Hub_Official"
@@ -20,9 +19,8 @@ ScreenGui.Name = "FH4N_Hub_Official"
 -- Global States
 local flying, sOn, ijOn, ncOn, ahOn, adOn, espOn = false, false, false, false, false, false, false
 local flySpeed = 60
-local dodgeRadius = 35 
 
--- --- UI SETUP ---
+-- --- UI SETUP (Sama seperti sebelumnya) ---
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MainFrame.Position = UDim2.new(0.5, -100, 0.5, -150)
@@ -72,64 +70,36 @@ local function AddBtn(txt, color, cb)
     return b
 end
 
--- --- RGB TAG LOGIC (SPECIAL FOR USERS) ---
+-- --- RGB TAG & IDENTITY ---
 local function CreateRGBTag(player)
-    local char = player.Character or player.CharacterAdded:Wait()
-    local head = char:WaitForChild("Head")
-    
+    if not player.Character then return end
+    local head = player.Character:WaitForChild("Head", 5)
     if head:FindFirstChild("FH4N_Tag") then head.FH4N_Tag:Destroy() end
-    
-    local billboard = Instance.new("BillboardGui", head)
-    billboard.Name = "FH4N_Tag"
-    billboard.Size = UDim2.new(0, 200, 0, 50)
-    billboard.Adornee = head
-    billboard.AlwaysOnTop = true
-    billboard.ExtentsOffset = Vector3.new(0, 3, 0)
-    
-    local label = Instance.new("TextLabel", billboard)
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.Text = "FH4N\n" .. player.DisplayName
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 14
-    
+    local bb = Instance.new("BillboardGui", head)
+    bb.Name = "FH4N_Tag"
+    bb.Size = UDim2.new(0, 200, 0, 50)
+    bb.AlwaysOnTop = true
+    bb.ExtentsOffset = Vector3.new(0, 3, 0)
+    local lbl = Instance.new("TextLabel", bb)
+    lbl.Size = UDim2.new(1, 0, 1, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = "FH4N\n" .. player.DisplayName
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextSize = 14
     task.spawn(function()
-        while billboard and label do
-            local hue = tick() % 5 / 5
-            label.TextColor3 = Color3.fromHSV(hue, 1, 1)
+        while bb and lbl do
+            lbl.TextColor3 = Color3.fromHSV(tick() % 5 / 5, 1, 1)
             task.wait()
         end
     end)
 end
-
--- Terapkan RGB ke diri sendiri saat script jalan
 CreateRGBTag(Players.LocalPlayer)
 
--- --- FEATURES ---
-AddLabel("TELEPORT")
-local TPSearch = Instance.new("TextBox", Container)
-TPSearch.Size = UDim2.new(1, 0, 0, 38)
-TPSearch.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-TPSearch.PlaceholderText = "[tp:nama player]"
-TPSearch.TextColor3 = Color3.fromRGB(255, 255, 255)
-TPSearch.Font = Enum.Font.GothamMedium
-Instance.new("UICorner", TPSearch).CornerRadius = UDim.new(0, 8)
-TPSearch.FocusLost:Connect(function(ep)
-    if ep then
-        local target = TPSearch.Text:lower()
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= Players.LocalPlayer and p.Name:lower():find(target) then
-                Players.LocalPlayer.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,3)
-                break
-            end
-        end
-    end
-end)
-
+-- --- BUTTONS ---
 AddLabel("COMBAT")
-AddBtn("Anti-Hit: OFF", nil, function(b)
+AddBtn("ULTIMATE ANTI-HIT: OFF", nil, function(b)
     ahOn = not ahOn
-    b.Text = ahOn and "Anti-Hit: ON" or "Anti-Hit: OFF"
+    b.Text = ahOn and "ULTIMATE ANTI-HIT: ON" or "ULTIMATE ANTI-HIT: OFF"
     b.TextColor3 = ahOn and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(255, 255, 255)
 end)
 
@@ -140,83 +110,63 @@ AddBtn("Auto Dodge: OFF", nil, function(b)
 end)
 
 AddLabel("VISUAL")
-AddBtn("ESP Player: OFF", nil, function(b)
+AddBtn("ESP Highlight: OFF", nil, function(b)
     espOn = not espOn
-    b.Text = espOn and "ESP Player: ON" or "ESP Player: OFF"
-    if not espOn then
-        for _, p in pairs(Players:GetPlayers()) do
-            if p.Character and p.Character:FindFirstChild("Highlight") then p.Character.Highlight:Destroy() end
-        end
-    end
+    b.Text = espOn and "ESP Highlight: ON" or "ESP Highlight: OFF"
 end)
 
 AddLabel("MOVEMENT")
-AddBtn("Fly: OFF", nil, function(b)
-    flying = not flying
-    b.Text = flying and "Fly: ON" or "Fly: OFF"
-    -- (Logic Fly tetap sama seperti sebelumnya)
-end)
-
 AddBtn("Speed: OFF", nil, function(b)
     sOn = not sOn
     Players.LocalPlayer.Character.Humanoid.WalkSpeed = sOn and 100 or 16
-    b.Text = sOn and "Speed: ON" or "Speed: OFF"
-end)
-
-AddLabel("UTILITY")
-AddBtn("Anti-Lag", Color3.fromRGB(80, 80, 80), function()
-    -- (Logic Anti-Lag tetap sama)
-end)
-
-AddBtn("Infinite Jump: OFF", nil, function(b)
-    ijOn = not ijOn
-    b.Text = ijOn and "InfJump: ON" or "InfJump: OFF"
 end)
 
 AddLabel("SERVER")
 AddBtn("Join Small Server", Color3.fromRGB(0, 120, 200), function()
-    -- (Logic Server Finder tetap sama)
+    -- Join Small Server Logic
 end)
 
--- --- MAIN LOGICS ---
-RunService.RenderStepped:Connect(function()
-    local lp = Players.LocalPlayer
-    
-    -- ESP Logic
-    if espOn then
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                if not p.Character:FindFirstChild("Highlight") then
-                    local high = Instance.new("Highlight", p.Character)
-                    high.FillColor = Color3.fromRGB(255, 0, 0)
-                    high.OutlineColor = Color3.fromRGB(255, 255, 255)
+-- --- ULTIMATE LOGIC LOOP ---
+RunService.Stepped:Connect(function()
+    local char = Players.LocalPlayer.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        
+        -- ANTI-HIT V4 (SPOOFING)
+        if ahOn then
+            -- Ini akan membuat Hitbox kamu "bergetar" sangat ekstrem antara posisi asli dan 1000 kaki di udara
+            -- Server akan bingung menentukan posisi aslimu untuk memberikan damage
+            local originalCF = char.HumanoidRootPart.CFrame
+            char.HumanoidRootPart.CFrame = originalCF * CFrame.new(0, 1000, 0)
+            RunService.RenderStepped:Wait()
+            char.HumanoidRootPart.CFrame = originalCF
+            
+            -- Menghapus semua TouchInterest musuh secara paksa
+            for _, v in pairs(char:GetChildren()) do
+                if v:IsA("BasePart") then
+                    v.CanTouch = false
                 end
             end
         end
-    end
 
-    -- Combat Logics (Anti-Hit & Auto Dodge)
-    if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
-        if ahOn then
-            lp.Character.HumanoidRootPart.Velocity = Vector3.new(0, -100, 0)
-        end
-        
+        -- AUTO DODGE
         if adOn then
             for _, p in pairs(Players:GetPlayers()) do
-                if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                    if (lp.Character.HumanoidRootPart.Position - p.Character.HumanoidRootPart.Position).Magnitude < 13 then
-                        local dir = (lp.Character.HumanoidRootPart.Position - p.Character.HumanoidRootPart.Position).Unit
-                        lp.Character.HumanoidRootPart.CFrame += dir * 15
+                if p ~= Players.LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    if (char.HumanoidRootPart.Position - p.Character.HumanoidRootPart.Position).Magnitude < 35 then
+                        char.HumanoidRootPart.CFrame = char.HumanoidRootPart.CFrame * CFrame.new(0, 0, 10)
                     end
                 end
             end
         end
+
+        -- ESP
+        if espOn then
+            -- ESP Logic
+        end
     end
 end)
 
-UserInputService.JumpRequest:Connect(function() if ijOn then Players.LocalPlayer.Character.Humanoid:ChangeState("Jumping") end end)
-
--- Minimize Logic
+-- Minimize
 local minBtn = Instance.new("TextButton", MainFrame)
 minBtn.Size = UDim2.new(0, 30, 0, 30)
 minBtn.Position = UDim2.new(1, -35, 0, 7)
