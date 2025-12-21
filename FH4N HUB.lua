@@ -3,45 +3,48 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
    Name = "FH4N HUB",
    LoadingTitle = "FN BIGRONE",
-   LoadingSubtitle = "", -- Menghapus tulisan 'by Gemini'
-   ConfigurationSaving = { Enabled = false },
+   LoadingSubtitle = "", -- Menghapus tulisan pembuat sesuai permintaan
+   ConfigurationSaving = {
+      Enabled = false
+   },
    CustomTheme = {
        HeaderColor = Color3.fromRGB(0, 0, 255), -- Header Biru
        AccentColor = Color3.fromRGB(0, 0, 255),
    }
 })
 
--- --- FITUR MINIMIZE PERBAIKAN (LOGO FN) ---
+-- --- FITUR MINIMIZE (LOGO FN) ---
 local ScreenGui = Instance.new("ScreenGui")
-local MinimizeButton = Instance.new("TextButton")
+local MinimizeBtn = Instance.new("TextButton")
 local UICorner = Instance.new("UICorner")
 
-ScreenGui.Name = "FN_Minimize_UI"
+ScreenGui.Name = "FN_Minimize_System"
 ScreenGui.Parent = game.CoreGui
 
-MinimizeButton.Name = "FN_Btn"
-MinimizeButton.Parent = ScreenGui
-MinimizeButton.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
-MinimizeButton.Position = UDim2.new(0.1, 0, 0.15, 0)
-MinimizeButton.Size = UDim2.new(0, 50, 0, 50)
-MinimizeButton.Font = Enum.Font.SourceSansBold
-MinimizeButton.Text = "FN"
-MinimizeButton.TextColor3 = Color3.fromRGB(0, 0, 0) -- Logo FN Hitam
-MinimizeButton.TextSize = 24
-MinimizeButton.Active = true
-MinimizeButton.Draggable = true -- Tombol FN bisa digeser
+MinimizeBtn.Name = "FN_Logo"
+MinimizeBtn.Parent = ScreenGui
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 255) -- Biru
+MinimizeBtn.Position = UDim2.new(0.1, 0, 0.15, 0)
+MinimizeBtn.Size = UDim2.new(0, 45, 0, 45)
+MinimizeBtn.Font = Enum.Font.SourceSansBold
+MinimizeBtn.Text = "FN"
+MinimizeBtn.TextColor3 = Color3.fromRGB(0, 0, 0) -- Tulisan FN Hitam
+MinimizeBtn.TextSize = 22
+MinimizeBtn.Active = true
+MinimizeBtn.Draggable = true -- Bisa digeser
 
-UICorner.CornerRadius = UDim.new(0, 12)
-UICorner.Parent = MinimizeButton
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = MinimizeBtn
 
-MinimizeButton.MouseButton1Click:Connect(function()
-    local targetUI = game:GetService("CoreGui"):FindFirstChild("Rayfield")
-    if targetUI then
-        targetUI.Enabled = not targetUI.Enabled
+MinimizeBtn.MouseButton1Click:Connect(function()
+    local coreGui = game:GetService("CoreGui")
+    local rayfieldUI = coreGui:FindFirstChild("Rayfield")
+    if rayfieldUI then
+        rayfieldUI.Enabled = not rayfieldUI.Enabled
     end
 end)
 
--- --- VARIABEL FITUR ---
+-- --- VARIABEL GLOBAL ---
 local Player = game.Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local RunService = game:GetService("RunService")
@@ -52,8 +55,8 @@ local InfJump = false
 local ESP_Enabled = false
 
 -- --- TABS ---
-local MainTab = Window:CreateTab("FN | Main", 4483362458)
-local ExtraTab = Window:CreateTab("FN | Extra", 4483362458)
+local MainTab = Window:CreateTab("FN | Features", 4483362458)
+local ExtraTab = Window:CreateTab("FN | Visual & TP", 4483362458)
 
 -- --- FITUR MAIN ---
 MainTab:CreateSlider({
@@ -76,10 +79,10 @@ MainTab:CreateToggle({
       local Root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
       if Flying and Root then
          local bv = Instance.new("BodyVelocity", Root)
-         bv.Name = "FN_FlyBV"
+         bv.Name = "FN_Velocity"
          bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
          local bg = Instance.new("BodyGyro", Root)
-         bg.Name = "FN_FlyBG"
+         bg.Name = "FN_Gyro"
          bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
          task.spawn(function()
             while Flying and Root.Parent do
@@ -92,6 +95,14 @@ MainTab:CreateToggle({
          end)
       end
    end,
+})
+
+MainTab:CreateSlider({
+   Name = "Fly Speed",
+   Range = {10, 300},
+   Increment = 1,
+   CurrentValue = 50,
+   Callback = function(Value) FlySpeed = Value end,
 })
 
 MainTab:CreateToggle({
@@ -108,37 +119,38 @@ MainTab:CreateToggle({
 
 -- --- FITUR EXTRA (ESP & TP) ---
 ExtraTab:CreateToggle({
-   Name = "Player ESP (Name)",
+   Name = "Player ESP (Name Tag)",
    CurrentValue = false,
    Callback = function(Value) ESP_Enabled = Value end,
 })
 
--- ESP Logic (Name Only)
+-- ESP Logic
 task.spawn(function()
     while task.wait(1) do
         if ESP_Enabled then
             for _, p in pairs(game.Players:GetPlayers()) do
                 if p ~= Player and p.Character and p.Character:FindFirstChild("Head") then
-                    if not p.Character.Head:FindFirstChild("FN_NameTag") then
-                        local billboard = Instance.new("BillboardGui", p.Character.Head)
-                        billboard.Name = "FN_NameTag"
-                        billboard.Size = UDim2.new(0, 200, 0, 50)
-                        billboard.AlwaysOnTop = true
-                        billboard.ExtentsOffset = Vector3.new(0, 3, 0)
-                        local label = Instance.new("TextLabel", billboard)
-                        label.BackgroundTransparency = 1
-                        label.Size = UDim2.new(1, 0, 1, 0)
-                        label.Text = p.Name
-                        label.Font = Enum.Font.SourceSansBold
-                        label.TextColor3 = Color3.fromRGB(255, 255, 255)
-                        label.TextSize = 14
+                    if not p.Character.Head:FindFirstChild("FN_Tag") then
+                        local bb = Instance.new("BillboardGui", p.Character.Head)
+                        bb.Name = "FN_Tag"
+                        bb.Size = UDim2.new(0, 200, 0, 50)
+                        bb.AlwaysOnTop = true
+                        bb.ExtentsOffset = Vector3.new(0, 3, 0)
+                        local lbl = Instance.new("TextLabel", bb)
+                        lbl.BackgroundTransparency = 1
+                        lbl.Size = UDim2.new(1, 0, 1, 0)
+                        lbl.Text = p.Name
+                        lbl.Font = Enum.Font.SourceSansBold
+                        lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        lbl.TextStrokeTransparency = 0
+                        lbl.TextSize = 14
                     end
                 end
             end
         else
             for _, p in pairs(game.Players:GetPlayers()) do
-                if p.Character and p.Character.Head:FindFirstChild("FN_NameTag") then
-                    p.Character.Head.FN_NameTag:Destroy()
+                if p.Character and p.Character.Head:FindFirstChild("FN_Tag") then
+                    p.Character.Head.FN_Tag:Destroy()
                 end
             end
         end
@@ -146,7 +158,7 @@ task.spawn(function()
 end)
 
 ExtraTab:CreateInput({
-   Name = "TP Player",
+   Name = "TP to Player",
    PlaceholderText = "Ketik Nama...",
    Callback = function(Text)
        local target = Text:lower()
@@ -158,9 +170,9 @@ ExtraTab:CreateInput({
    end,
 })
 
--- Chat Command TP (tp:nama)
+-- --- CHAT COMMAND TP (tp:nama) ---
 Player.Chatted:Connect(function(msg)
-    if msg:sub(1,3) == "tp:" then
+    if msg:sub(1,3):lower() == "tp:" then
         local target = msg:sub(4):lower()
         for _, v in pairs(game.Players:GetPlayers()) do
             if v.Name:lower():find(target) then
