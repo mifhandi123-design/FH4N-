@@ -1,8 +1,47 @@
--- FH4N HUB (Kavo UI + Improved Minimize & Draggable)
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("FH4N HUB", "DarkTheme")
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- Variabel Utama
+local Window = Rayfield:CreateWindow({
+   Name = "FH4N HUB",
+   LoadingTitle = "FN BIGRONE",
+   LoadingSubtitle = "", -- Menghapus tulisan 'by Gemini'
+   ConfigurationSaving = { Enabled = false },
+   CustomTheme = {
+       HeaderColor = Color3.fromRGB(0, 0, 255), -- Header Biru
+       AccentColor = Color3.fromRGB(0, 0, 255),
+   }
+})
+
+-- --- FITUR MINIMIZE PERBAIKAN (LOGO FN) ---
+local ScreenGui = Instance.new("ScreenGui")
+local MinimizeButton = Instance.new("TextButton")
+local UICorner = Instance.new("UICorner")
+
+ScreenGui.Name = "FN_Minimize_UI"
+ScreenGui.Parent = game.CoreGui
+
+MinimizeButton.Name = "FN_Btn"
+MinimizeButton.Parent = ScreenGui
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
+MinimizeButton.Position = UDim2.new(0.1, 0, 0.15, 0)
+MinimizeButton.Size = UDim2.new(0, 50, 0, 50)
+MinimizeButton.Font = Enum.Font.SourceSansBold
+MinimizeButton.Text = "FN"
+MinimizeButton.TextColor3 = Color3.fromRGB(0, 0, 0) -- Logo FN Hitam
+MinimizeButton.TextSize = 24
+MinimizeButton.Active = true
+MinimizeButton.Draggable = true -- Tombol FN bisa digeser
+
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = MinimizeButton
+
+MinimizeButton.MouseButton1Click:Connect(function()
+    local targetUI = game:GetService("CoreGui"):FindFirstChild("Rayfield")
+    if targetUI then
+        targetUI.Enabled = not targetUI.Enabled
+    end
+end)
+
+-- --- VARIABEL FITUR ---
 local Player = game.Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local RunService = game:GetService("RunService")
@@ -12,111 +51,69 @@ local Noclip = false
 local InfJump = false
 local ESP_Enabled = false
 
--- --- FITUR MINIMIZE PERBAIKAN ---
-local ScreenGui = Instance.new("ScreenGui")
-local MinimizeButton = Instance.new("TextButton")
-local UICorner = Instance.new("UICorner")
+-- --- TABS ---
+local MainTab = Window:CreateTab("FN | Main", 4483362458)
+local ExtraTab = Window:CreateTab("FN | Extra", 4483362458)
 
-ScreenGui.Name = "FN_Minimize_Gui"
-ScreenGui.Parent = game.CoreGui
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+-- --- FITUR MAIN ---
+MainTab:CreateSlider({
+   Name = "WalkSpeed",
+   Range = {16, 500},
+   Increment = 1,
+   CurrentValue = 16,
+   Callback = function(Value)
+      if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+         Player.Character.Humanoid.WalkSpeed = Value
+      end
+   end,
+})
 
-MinimizeButton.Name = "FN_Button"
-MinimizeButton.Parent = ScreenGui
-MinimizeButton.BackgroundColor3 = Color3.fromRGB(0, 0, 255) -- Header Biru
-MinimizeButton.Position = UDim2.new(0.1, 0, 0.15, 0)
-MinimizeButton.Size = UDim2.new(0, 50, 0, 50)
-MinimizeButton.Font = Enum.Font.SourceSansBold
-MinimizeButton.Text = "FN"
-MinimizeButton.TextColor3 = Color3.fromRGB(0, 0, 0) -- Tulisan FN Hitam
-MinimizeButton.TextSize = 24
-MinimizeButton.Active = true
-MinimizeButton.Draggable = true -- Tombol FN bisa digeser
-
-UICorner.CornerRadius = UDim.new(0, 12)
-UICorner.Parent = MinimizeButton
-
--- Fungsi Toggle Menu (Perbaikan)
-local MenuVisible = true
-MinimizeButton.MouseButton1Click:Connect(function()
-    MenuVisible = not MenuVisible
-    local MainUI = game:GetService("CoreGui"):FindFirstChild("FH4N HUB")
-    if MainUI then
-        MainUI.Enabled = MenuVisible
-    end
-end)
-
--- --- TAB UTAMA ---
-local MainTab = Window:NewTab("FN | Features")
-local Section = MainTab:NewSection("FN BIGRONE")
-
--- Fitur Speed
-Section:NewSlider("Walkspeed", "Ubah kecepatan jalan", 500, 16, function(s)
-    if Player.Character and Player.Character:FindFirstChild("Humanoid") then
-        Player.Character.Humanoid.WalkSpeed = s
-    end
-end)
-
--- Fitur Fly
-Section:NewToggle("Fly (Mobile)", "Terbang ke arah kamera", function(state)
-    Flying = state
-    local Root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-    if Flying and Root then
-        local bv = Instance.new("BodyVelocity", Root)
-        bv.Name = "FN_FlyBV"
-        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        local bg = Instance.new("BodyGyro", Root)
-        bg.Name = "FN_FlyBG"
-        bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-        task.spawn(function()
+MainTab:CreateToggle({
+   Name = "Fly (Mobile)",
+   CurrentValue = false,
+   Callback = function(Value)
+      Flying = Value
+      local Root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+      if Flying and Root then
+         local bv = Instance.new("BodyVelocity", Root)
+         bv.Name = "FN_FlyBV"
+         bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+         local bg = Instance.new("BodyGyro", Root)
+         bg.Name = "FN_FlyBG"
+         bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+         task.spawn(function()
             while Flying and Root.Parent do
-                bv.Velocity = Camera.CFrame.LookVector * FlySpeed
-                bg.CFrame = Camera.CFrame
-                RunService.RenderStepped:Wait()
+               bv.Velocity = Camera.CFrame.LookVector * FlySpeed
+               bg.CFrame = Camera.CFrame
+               RunService.RenderStepped:Wait()
             end
             if bv then bv:Destroy() end
             if bg then bg:Destroy() end
-        end)
-    end
-end)
+         end)
+      end
+   end,
+})
 
-Section:NewSlider("Fly Speed", "Kecepatan terbang", 300, 10, function(s)
-    FlySpeed = s
-end)
+MainTab:CreateToggle({
+   Name = "Noclip",
+   CurrentValue = false,
+   Callback = function(Value) Noclip = Value end
+})
 
--- Fitur Noclip
-Section:NewToggle("Noclip", "Tembus tembok", function(state)
-    Noclip = state
-end)
+MainTab:CreateToggle({
+   Name = "Infinite Jump",
+   CurrentValue = false,
+   Callback = function(Value) InfJump = Value end,
+})
 
-RunService.Stepped:Connect(function()
-    if Noclip and Player.Character then
-        for _, v in pairs(Player.Character:GetDescendants()) do
-            if v:IsA("BasePart") then v.CanCollide = false end
-        end
-    end
-end)
+-- --- FITUR EXTRA (ESP & TP) ---
+ExtraTab:CreateToggle({
+   Name = "Player ESP (Name)",
+   CurrentValue = false,
+   Callback = function(Value) ESP_Enabled = Value end,
+})
 
--- Fitur Inf Jump
-Section:NewToggle("Infinite Jump", "Lompat tanpa batas", function(state)
-    InfJump = state
-end)
-
-game:GetService("UserInputService").JumpRequest:Connect(function()
-    if InfJump and Player.Character and Player.Character:FindFirstChild("Humanoid") then
-        Player.Character.Humanoid:ChangeState("Jumping")
-    end
-end)
-
--- --- TAB EXTRA (ESP & TP) ---
-local ExtraTab = Window:NewTab("FN | Extra")
-local ExtraSection = ExtraTab:NewSection("Visual & Teleport")
-
-ExtraSection:NewToggle("Player ESP (Nama)", "Lihat nama player", function(state)
-    ESP_Enabled = state
-end)
-
--- ESP Logic
+-- ESP Logic (Name Only)
 task.spawn(function()
     while task.wait(1) do
         if ESP_Enabled then
@@ -148,15 +145,18 @@ task.spawn(function()
     end
 end)
 
--- Teleport Input
-ExtraSection:NewTextBox("TP Player", "Nama...", function(txt)
-    local target = txt:lower()
-    for _, v in pairs(game.Players:GetPlayers()) do
-        if v.Name:lower():find(target) then
-            Player.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame
-        end
-    end
-end)
+ExtraTab:CreateInput({
+   Name = "TP Player",
+   PlaceholderText = "Ketik Nama...",
+   Callback = function(Text)
+       local target = Text:lower()
+       for _, v in pairs(game.Players:GetPlayers()) do
+           if v.Name:lower():find(target) then
+               Player.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame
+           end
+       end
+   end,
+})
 
 -- Chat Command TP (tp:nama)
 Player.Chatted:Connect(function(msg)
@@ -170,17 +170,17 @@ Player.Chatted:Connect(function(msg)
     end
 end)
 
--- SETUP UI (Warna Biru & Draggable)
-task.wait(0.5)
-local MainUI = game:GetService("CoreGui"):FindFirstChild("FH4N HUB")
-if MainUI then
-    for _, v in pairs(MainUI:GetDescendants()) do
-        if v:IsA("Frame") and v.Name == "Main" then
-            v.Active = true
-            v.Draggable = true -- MENU UTAMA BISA DIGESER
-        end
-        if v:IsA("Frame") and v.Name == "Header" then
-            v.BackgroundColor3 = Color3.fromRGB(0, 0, 255) -- HEADER BIRU
+-- --- LOOP SISTEM ---
+RunService.Stepped:Connect(function()
+    if Noclip and Player.Character then
+        for _, v in pairs(Player.Character:GetDescendants()) do
+            if v:IsA("BasePart") then v.CanCollide = false end
         end
     end
-end
+end)
+
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if InfJump and Player.Character and Player.Character:FindFirstChild("Humanoid") then
+        Player.Character.Humanoid:ChangeState("Jumping")
+    end
+end)
