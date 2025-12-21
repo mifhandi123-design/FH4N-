@@ -1,7 +1,6 @@
 --[[
-    FH4N HUB - OFFICIAL
-    Fitur: Fly, Speed, Infinite Jump, Noclip, Anti-AFK, Anti-Hit, TP Search, Join Small Server
-    Status: No Close Button, Server Finder at Bottom
+    FH4N HUB - OFFICIAL (FIX ANTI-HIT)
+    Fitur: Fly, Speed, Infinite Jump, Noclip, Anti-AFK, Anti-Hit (V2), TP Search, Join Small Server
 ]]
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -84,9 +83,7 @@ TPSearch.TextColor3 = Color3.fromRGB(255, 255, 255)
 TPSearch.Font = Enum.Font.GothamMedium
 TPSearch.TextSize = 14
 Instance.new("UICorner", TPSearch).CornerRadius = UDim.new(0, 8)
-local tpStroke = Instance.new("UIStroke", TPSearch)
-tpStroke.Color = Color3.fromRGB(0, 255, 255)
-tpStroke.Thickness = 1
+Instance.new("UIStroke", TPSearch).Color = Color3.fromRGB(0, 255, 255)
 
 TPSearch.FocusLost:Connect(function(enterPressed)
     if enterPressed then
@@ -94,9 +91,8 @@ TPSearch.FocusLost:Connect(function(enterPressed)
         for _, player in pairs(Players:GetPlayers()) do
             if player.Name:lower():sub(1, #targetName) == targetName or player.DisplayName:lower():sub(1, #targetName) == targetName then
                 local myChar = Players.LocalPlayer.Character
-                local targetChar = player.Character
-                if myChar and targetChar and targetChar:FindFirstChild("HumanoidRootPart") then
-                    myChar.HumanoidRootPart.CFrame = targetChar.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
+                if myChar and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    myChar.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
                     TPSearch.Text = "Teleported!"
                     task.wait(1)
                     TPSearch.Text = ""
@@ -107,12 +103,21 @@ TPSearch.FocusLost:Connect(function(enterPressed)
     end
 end)
 
--- --- 2. COMBAT ---
+-- --- 2. COMBAT (FIXED ANTI-HIT) ---
 AddLabel("COMBAT")
 AddBtn("Anti-Hit: OFF", nil, function(b)
     ahOn = not ahOn
     b.Text = ahOn and "Anti-Hit: ON" or "Anti-Hit: OFF"
     b.TextColor3 = ahOn and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(255, 255, 255)
+    
+    local char = Players.LocalPlayer.Character
+    if char then
+        for _, v in pairs(char:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.CanTouch = not ahOn -- Mengatur touch detection
+            end
+        end
+    end
 end)
 
 -- --- 3. MOVEMENT ---
@@ -151,7 +156,6 @@ end)
 AddBtn("Infinite Jump: OFF", nil, function(b)
     ijOn = not ijOn
     b.Text = ijOn and "InfJump: ON" or "InfJump: OFF"
-    b.TextColor3 = ijOn and Color3.fromRGB(0, 255, 255) or Color3.fromRGB(255, 255, 255)
 end)
 
 -- --- 4. UTILITY ---
@@ -187,26 +191,29 @@ AddBtn("Join Small Server", Color3.fromRGB(0, 120, 200), function(b)
     end
 end)
 
--- --- BACKGROUND LOGIC ---
+-- --- BACKGROUND LOGIC (PERBAIKAN ANTI-HIT & NOCLIP) ---
 RunService.Stepped:Connect(function()
     local char = Players.LocalPlayer.Character
     if char then
-        for _, v in pairs(char:GetDescendants()) do
+        for _, v in pairs(char:GetChildren()) do
             if v:IsA("BasePart") then
                 if ncOn then v.CanCollide = false end
-                if ahOn and v.Name ~= "HumanoidRootPart" then v.CanTouch = false end
+                -- Logika Anti-Hit Baru: Melepas TouchInterest
+                if ahOn then
+                    v.CanTouch = false
+                    local touch = v:FindFirstChildOfClass("TouchTransmitter")
+                    if touch then touch:Destroy() end
+                else
+                    v.CanTouch = true
+                end
             end
         end
     end
 end)
 
--- Logika Infinite Jump
 UserInputService.JumpRequest:Connect(function()
-    if ijOn then
-        local char = Players.LocalPlayer.Character
-        if char and char:FindFirstChildOfClass("Humanoid") then
-            char:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
-        end
+    if ijOn and Players.LocalPlayer.Character then 
+        Players.LocalPlayer.Character.Humanoid:ChangeState("Jumping") 
     end
 end)
 
