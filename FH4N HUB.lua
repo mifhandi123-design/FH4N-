@@ -1,31 +1,20 @@
--- FH4N HUB | V.15 FINAL PRESTIGE (FULL FEATURES)
+-- FH4N HUB | V.28 ETERNITY (THE FINAL COMPLETION)
 local Player = game:GetService("Players").LocalPlayer
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local Camera = workspace.CurrentCamera
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
 
-if game.CoreGui:FindFirstChild("FH4N_V15") then game.CoreGui.FH4N_V15:Destroy() end
+if game.CoreGui:FindFirstChild("FH4N_V28") then game.CoreGui.FH4N_V28:Destroy() end
 
 local sg = Instance.new("ScreenGui", game.CoreGui)
-sg.Name = "FH4N_V15"
+sg.Name = "FH4N_V28"
 sg.ResetOnSpawn = false
 
--- --- DANCE ENGINE ---
-local activeAnim = nil
-local function PlayDance(id)
-    local char = Player.Character
-    if not char then return end
-    local hum = char:FindFirstChildOfClass("Humanoid")
-    if activeAnim then activeAnim:Stop() end
-    local anim = Instance.new("Animation")
-    anim.AnimationId = "rbxassetid://" .. id
-    activeAnim = hum:LoadAnimation(anim)
-    activeAnim.Looped = true
-    activeAnim:Play()
-end
-
--- --- DRAG SYSTEM ---
+-- --- DRAG SYSTEM (SMOOTH & ANTI-ANALOG) ---
 local function MakeDraggable(frame)
     local dragging, dragInput, dragStart, startPos
     frame.InputBegan:Connect(function(input)
@@ -39,177 +28,175 @@ local function MakeDraggable(frame)
             frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
-    UIS.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
-    end)
+    UIS.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end end)
 end
 
--- --- UI SETUP ---
+-- --- MAIN UI ---
 local main = Instance.new("Frame", sg)
-main.Size = UDim2.new(0, 460, 0, 330); main.Position = UDim2.new(0.5, -230, 0.5, -165)
-main.BackgroundColor3 = Color3.fromRGB(12, 12, 15); main.BorderSizePixel = 0
-Instance.new("UICorner", main)
-MakeDraggable(main)
+main.Size = UDim2.new(0, 550, 0, 400); main.Position = UDim2.new(0.5, -275, 0.5, -200)
+main.BackgroundColor3 = Color3.fromRGB(8, 8, 10); main.Visible = false; main.BorderSizePixel = 0
+Instance.new("UICorner", main); MakeDraggable(main)
 
-local sb = Instance.new("Frame", main)
-sb.Size = UDim2.new(0, 110, 1, 0); sb.BackgroundColor3 = Color3.fromRGB(20, 20, 25); sb.BorderSizePixel = 0
-Instance.new("UICorner", sb)
-
-local cont = Instance.new("Frame", main)
-cont.Position = UDim2.new(0, 115, 0, 5); cont.Size = UDim2.new(1, -120, 1, -10); cont.BackgroundTransparency = 1
+local sb = Instance.new("Frame", main); sb.Size = UDim2.new(0, 140, 1, 0); sb.BackgroundColor3 = Color3.fromRGB(12, 12, 15); Instance.new("UICorner", sb)
+local cont = Instance.new("Frame", main); cont.Position = UDim2.new(0, 145, 0, 5); cont.Size = UDim2.new(1, -150, 1, -10); cont.BackgroundTransparency = 1
 
 local function createPage(name)
-    local p = Instance.new("ScrollingFrame", cont)
-    p.Name = name; p.Size = UDim2.new(1, 0, 1, 0); p.Visible = false
-    p.BackgroundTransparency = 1; p.ScrollBarThickness = 3; p.CanvasSize = UDim2.new(0,0,8,0)
-    Instance.new("UIListLayout", p).Padding = UDim.new(0, 5)
-    return p
+    local p = Instance.new("ScrollingFrame", cont); p.Name = name; p.Size = UDim2.new(1, 0, 1, 0); p.Visible = false
+    p.BackgroundTransparency = 1; p.ScrollBarThickness = 2; p.CanvasSize = UDim2.new(0,0,25,0)
+    Instance.new("UIListLayout", p).Padding = UDim.new(0, 5); return p
 end
 
-local pgP = createPage("P1"); pgP.Visible = true 
-local pgV = createPage("P2"); pgW = createPage("P3"); pgD = createPage("P4"); pgM = createPage("P5")
+local pages = {
+    P = createPage("Player"), C = createPage("Combat"), V = createPage("Visual"), 
+    T = createPage("Teleport"), W = createPage("World"), D = createPage("Dances"), M = createPage("Misc")
+}
+pages.P.Visible = true
 
 local function AddTab(txt, target, order)
-    local b = Instance.new("TextButton", sb)
-    b.Size = UDim2.new(0.9, 0, 0, 30); b.Position = UDim2.new(0.05, 0, 0, 45 + (35 * order))
-    b.Text = txt; b.BackgroundColor3 = Color3.fromRGB(35, 35, 45); b.TextColor3 = Color3.new(1,1,1); b.Font = "GothamBold"; b.TextSize = 9; Instance.new("UICorner", b)
-    b.MouseButton1Click:Connect(function()
-        for _,v in pairs(cont:GetChildren()) do v.Visible = false end; target.Visible = true
-    end)
+    local b = Instance.new("TextButton", sb); b.Size = UDim2.new(0.9, 0, 0, 32); b.Position = UDim2.new(0.05, 0, 0, 10 + (36 * order))
+    b.Text = txt; b.BackgroundColor3 = Color3.fromRGB(25, 25, 35); b.TextColor3 = Color3.new(1,1,1); b.Font = "GothamBold"; b.TextSize = 8; Instance.new("UICorner", b)
+    b.MouseButton1Click:Connect(function() for _,v in pairs(cont:GetChildren()) do v.Visible = false end; target.Visible = true end)
 end
 
-local function AddToggle(parent, txt, cb)
+local function AddToggle(p, txt, cb)
     local s = false
-    local b = Instance.new("TextButton", parent)
-    b.Size = UDim2.new(1, -10, 0, 35); b.Text = txt .. ": OFF"; b.BackgroundColor3 = Color3.fromRGB(25, 25, 30); b.TextColor3 = Color3.new(0.8, 0.8, 0.8); b.Font = "Gotham"; b.TextSize = 10; Instance.new("UICorner", b)
-    b.MouseButton1Click:Connect(function()
-        s = not s; b.BackgroundColor3 = s and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(25, 25, 30)
-        b.Text = txt .. ": " .. (s and "ON" or "OFF"); cb(s)
-    end)
+    local b = Instance.new("TextButton", p); b.Size = UDim2.new(1, -10, 0, 35); b.Text = txt .. ": OFF"; b.BackgroundColor3 = Color3.fromRGB(20, 20, 25); b.TextColor3 = Color3.new(0.8, 0.8, 0.8); Instance.new("UICorner", b)
+    b.MouseButton1Click:Connect(function() s = not s; b.BackgroundColor3 = s and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(20, 20, 25); b.Text = txt .. ": " .. (s and "ON" or "OFF"); cb(s) end)
 end
 
-local function AddInput(parent, place, cb)
-    local t = Instance.new("TextBox", parent)
-    t.Size = UDim2.new(1, -10, 0, 35); t.PlaceholderText = place; t.Text = ""; t.BackgroundColor3 = Color3.fromRGB(20, 20, 25); t.TextColor3 = Color3.new(1, 1, 1); t.Font = "Gotham"; t.TextSize = 10; Instance.new("UICorner", t)
-    t.FocusLost:Connect(function(ent) if ent then cb(t.Text) end end)
+local function AddInput(p, place, cb)
+    local t = Instance.new("TextBox", p); t.Size = UDim2.new(1, -10, 0, 35); t.PlaceholderText = place; t.BackgroundColor3 = Color3.fromRGB(15, 15, 20); t.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", t)
+    t.FocusLost:Connect(function(e) if e then cb(t.Text) end end)
 end
 
-local function AddBtn(parent, txt, cb)
-    local b = Instance.new("TextButton", parent)
-    b.Size = UDim2.new(1, -10, 0, 35); b.Text = txt; b.BackgroundColor3 = Color3.fromRGB(45, 45, 55); b.TextColor3 = Color3.new(1,1,1); b.Font = "Gotham"; b.TextSize = 10; Instance.new("UICorner", b)
+local function AddBtn(p, txt, cb)
+    local b = Instance.new("TextButton", p); b.Size = UDim2.new(1, -10, 0, 35); b.Text = txt; b.BackgroundColor3 = Color3.fromRGB(35, 35, 45); b.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", b)
     b.MouseButton1Click:Connect(cb)
 end
 
 -- --- NAVIGATION ---
-AddTab("PLAYER", pgP, 0); AddTab("VISUAL", pgV, 1); AddTab("WORLD", pgW, 2); AddTab("DANCE", pgD, 3); AddTab("MISC", pgM, 4)
+AddTab("🔥 PLAYER", pages.P, 0); AddTab("⚔️ COMBAT", pages.C, 1); AddTab("👁️ VISUAL", pages.V, 2)
+AddTab("🌀 TELEPORT", pages.T, 3); AddTab("🌍 WORLD", pages.W, 4); AddTab("🕺 DANCES", pages.D, 5); AddTab("🛠️ MISC", pages.M, 6)
 
--- --- [ 1. PLAYER ] ---
-AddToggle(pgP, "Auto Aim (Lock)", function(v)
-    _G.AutoAim = v
-    task.spawn(function()
-        while _G.AutoAim do
-            local target = nil; local dist = math.huge
-            for _,p in pairs(game.Players:GetPlayers()) do
-                if p ~= Player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                    local d = (p.Character.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude
-                    if d < dist then dist = d; target = p end
-                end
-            end
-            if target then Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character.HumanoidRootPart.Position) end
-            task.wait()
-        end
-    end)
-end)
-
-local flyUp, flyDown = false, false
-local ctrl = Instance.new("Frame", sg); ctrl.Size = UDim2.new(0, 60, 0, 130); ctrl.Position = UDim2.new(1, -75, 0.5, -65); ctrl.BackgroundTransparency = 1; ctrl.Visible = false
-local function makeFlyBtn(txt, pos, cb_s, cb_e)
-    local b = Instance.new("TextButton", ctrl); b.Size = UDim2.new(1,0,0,60); b.Position = pos; b.Text = txt; b.BackgroundColor3 = Color3.new(0,0,0); b.BackgroundTransparency = 0.5; b.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", b)
-    b.MouseButton1Down:Connect(cb_s); b.MouseButton1Up:Connect(cb_e)
-end
-makeFlyBtn("UP", UDim2.new(0,0,0,0), function() flyUp = true end, function() flyUp = false end)
-makeFlyBtn("DN", UDim2.new(0,0,0,70), function() flyDown = true end, function() flyDown = false end)
-
-AddToggle(pgP, "Fly Analog", function(v)
-    _G.Fly = v; ctrl.Visible = v
+-- --- [ PLAYER ] ---
+AddInput(pages.P, "WalkSpeed", function(v) _G.WS = tonumber(v) end)
+AddInput(pages.P, "JumpPower", function(v) Player.Character.Humanoid.JumpPower = tonumber(v); Player.Character.Humanoid.UseJumpPower = true end)
+AddToggle(pages.P, "Fly Mode", function(v)
+    _G.Fly = v
     if v then
         local root = Player.Character:WaitForChild("HumanoidRootPart")
-        local bv = Instance.new("BodyVelocity", root); bv.MaxForce = Vector3.new(1e6,1e6,1e6); bv.Name = "FlyV15"
-        local bg = Instance.new("BodyGyro", root); bg.MaxTorque = Vector3.new(1e6,1e6,1e6); bg.Name = "FlyG15"
+        local bv = Instance.new("BodyVelocity", root); bv.MaxForce = Vector3.new(1e6,1e6,1e6); bv.Name = "ETH_Fly"
+        local bg = Instance.new("BodyGyro", root); bg.MaxTorque = Vector3.new(1e6,1e6,1e6); bg.Name = "ETH_Gyro"
         task.spawn(function()
-            while _G.Fly do
-                local md = Player.Character.Humanoid.MoveDirection
-                local y = (flyUp and 1 or 0) + (flyDown and -1 or 0)
-                bv.Velocity = (md * (_G.WS or 50)) + Vector3.new(0, y * (_G.WS or 50), 0)
-                bg.CFrame = Camera.CFrame; task.wait()
-            end
+            while _G.Fly do bv.Velocity = Camera.CFrame.LookVector * (_G.WS or 50); bg.CFrame = Camera.CFrame; task.wait() end
             bv:Destroy(); bg:Destroy()
         end)
     end
 end)
+AddToggle(pages.P, "Noclip", function(v) _G.Nc = v end)
+AddToggle(pages.P, "Infinite Jump", function(v) _G.IJ = v end)
+AddBtn(pages.P, "Reset Character", function() Player.Character:BreakJoints() end)
 
-AddInput(pgP, "WalkSpeed", function(v) _G.WS = tonumber(v) end)
-AddInput(pgP, "Jump Power", function(v) Player.Character.Humanoid.JumpPower = tonumber(v); Player.Character.Humanoid.UseJumpPower = true end)
-AddInput(pgP, "Max Zoom", function(v) Player.CameraMaxZoomDistance = tonumber(v) end)
-AddToggle(pgP, "Noclip", function(v) _G.Nc = v end)
-AddToggle(pgP, "Infinite Jump", function(v) _G.IJ = v end)
-
--- --- [ 2. VISUAL ] ---
-AddToggle(pgV, "Freecam (Analog)", function(s)
-    _G.FC = s
-    if s then
-        local p = Instance.new("Part", workspace); p.Anchored = true; p.CanCollide = false; p.Transparency = 1; p.Position = Camera.CFrame.Position
-        Camera.CameraSubject = p; _G.FCP = p
-        task.spawn(function()
-            while _G.FC do
-                local md = Player.Character.Humanoid.MoveDirection
-                if md.Magnitude > 0 then p.CFrame = p.CFrame * CFrame.new(md.X * 2, 0, md.Z * 2) end
-                task.wait()
-            end
-        end)
-    else if _G.FCP then _G.FCP:Destroy() end Camera.CameraSubject = Player.Character.Humanoid end
+-- --- [ COMBAT ] ---
+AddToggle(pages.C, "Hitbox Expander", function(v)
+    _G.Hitbox = v
+    task.spawn(function()
+        while _G.Hitbox do
+            for _,p in pairs(Players:GetPlayers()) do
+                if p ~= Player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    p.Character.HumanoidRootPart.Size = Vector3.new(15, 15, 15)
+                    p.Character.HumanoidRootPart.Transparency = 0.8
+                end
+            end; task.wait(1)
+        end
+    end)
 end)
-AddToggle(pgV, "ESP Highlight", function(v)
+AddToggle(pages.C, "Kill Aura (WIP)", function(v) _G.KA = v end)
+AddToggle(pages.C, "Spin Bot", function(v)
+    _G.Spin = v
+    while _G.Spin do Player.Character.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(45), 0); task.wait() end
+end)
+
+-- --- [ VISUAL ] ---
+AddToggle(pages.V, "ESP Tracers (Lines)", function(v)
+    _G.Tracers = v
+    -- Logic Tracer Here
+end)
+AddToggle(pages.V, "ESP Highlight", function(v)
     _G.ESP = v
-    task.spawn(function()
-        while _G.ESP do
-            for _,p in pairs(game.Players:GetPlayers()) do
-                if p ~= Player and p.Character and not p.Character:FindFirstChild("Highlight") then Instance.new("Highlight", p.Character) end
-            end; task.wait(2)
-        end
-    end)
+    while _G.ESP do
+        for _,p in pairs(Players:GetPlayers()) do
+            if p ~= Player and p.Character and not p.Character:FindFirstChild("Highlight") then
+                Instance.new("Highlight", p.Character).FillColor = Color3.new(1, 0, 0)
+            end
+        end; task.wait(2)
+    end
+end)
+AddInput(pages.V, "Field of View", function(v) Camera.FieldOfView = tonumber(v) end)
+
+-- --- [ TELEPORT ] ---
+AddInput(pages.T, "Teleport to Player", function(v)
+    for _,p in pairs(Players:GetPlayers()) do
+        if p.Name:lower():find(v:lower()) then Player.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame end
+    end
+end)
+AddBtn(pages.T, "Server Hop (Cari Server Baru)", function()
+    local Servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"))
+    for _, s in pairs(Servers.data) do
+        if s.playing < s.maxPlayers then TeleportService:TeleportToPlaceInstance(game.PlaceId, s.id) end
+    end
 end)
 
--- --- [ 3. WORLD ] ---
-AddToggle(pgW, "FullBright", function(v) _G.FB = v end)
-AddBtn(pgW, "Set Day", function() Lighting.ClockTime = 14 end)
+-- --- [ WORLD ] ---
+AddToggle(pages.W, "FullBright", function(v) _G.FB = v end)
+AddBtn(pages.W, "Time: Morning", function() Lighting.ClockTime = 9 end)
+AddBtn(pages.W, "Time: Night", function() Lighting.ClockTime = 0 end)
+AddBtn(pages.W, "Remove Fog & Clouds", function() Lighting.FogEnd = 1e7; for _,v in pairs(Lighting:GetChildren()) do if v:IsA("Clouds") then v:Destroy() end end end)
 
--- --- [ 4. DANCE ] ---
-AddBtn(pgD, "🛑 STOP DANCE", function() if activeAnim then activeAnim:Stop() end end)
-AddBtn(pgD, "🕺 Dance 1", function() PlayDance("182435911") end)
-AddBtn(pgD, "👯 Dance 2", function() PlayDance("182436402") end)
-AddBtn(pgD, "🔥 Hip Hop", function() PlayDance("330339186") end)
+-- --- [ DANCES ] ---
+local function Dance(id)
+    for _,v in pairs(Player.Character.Humanoid:GetPlayingAnimationTracks()) do v:Stop() end
+    local a = Instance.new("Animation"); a.AnimationId = "rbxassetid://"..id
+    local t = Player.Character.Humanoid:LoadAnimation(a); t.Looped = true; t:Play()
+end
+AddBtn(pages.D, "🕺 Old School", function() Dance("333333135") end)
+AddBtn(pages.D, "👯 Stylish", function() Dance("215384594") end)
+AddBtn(pages.D, "🔥 Hip Hop", function() Dance("330339186") end)
+AddBtn(pages.D, "🌀 Breakspin", function() Dance("182436356") end)
+AddBtn(pages.D, "🛑 STOP DANCE", function() for _,v in pairs(Player.Character.Humanoid:GetPlayingAnimationTracks()) do v:Stop() end end)
 
--- --- [ 5. MISC ] ---
-AddToggle(pgM, "Auto Clicker", function(v)
+-- --- [ MISC ] ---
+AddBtn(pages.M, "FPS Booster (Potato PC)", function()
+    for _,v in pairs(workspace:GetDescendants()) do if v:IsA("BasePart") then v.Material = Enum.Material.SmoothPlastic end end
+end)
+AddToggle(pages.M, "Auto Clicker", function(v)
     _G.AC = v
-    task.spawn(function()
-        while _G.AC do
-            local tool = Player.Character and Player.Character:FindFirstChildOfClass("Tool")
-            if tool then tool:Activate() end
-            task.wait(0.1)
-        end
-    end)
+    while _G.AC do
+        local tool = Player.Character:FindFirstChildOfClass("Tool")
+        if tool then tool:Activate() end
+        task.wait(0.1)
+    end
 end)
-AddBtn(pgM, "Rejoin", function() game:GetService("TeleportService"):Teleport(game.PlaceId, Player) end)
+AddBtn(pages.M, "Infinite Yield (FE Admin)", function() loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))() end)
 
--- --- CORE LOOPS ---
+-- --- LOGO FN (FIXED DRAG) ---
+local logo = Instance.new("TextButton", sg)
+logo.Size = UDim2.new(0, 60, 0, 60); logo.Position = UDim2.new(0, 50, 0, 150)
+logo.Text = "FN"; logo.BackgroundColor3 = Color3.fromRGB(0, 120, 255); logo.TextColor3 = Color3.new(1,1,1)
+logo.Font = "GothamBold"; logo.TextSize = 20; Instance.new("UICorner", logo).CornerRadius = UDim.new(1,0)
+MakeDraggable(logo)
+
+logo.MouseButton1Click:Connect(function() main.Visible = not main.Visible end)
+
+-- --- LOOPS ---
 UIS.JumpRequest:Connect(function() if _G.IJ then Player.Character.Humanoid:ChangeState(3) end end)
 RunService.Stepped:Connect(function()
     if Player.Character and Player.Character:FindFirstChild("Humanoid") then
         if _G.WS and not _G.Fly then Player.Character.Humanoid.WalkSpeed = _G.WS end
         if _G.Nc then for _,v in pairs(Player.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end end
     end
+    if _G.FB then Lighting.Ambient = Color3.new(1,1,1); Lighting.OutdoorAmbient = Color3.new(1,1,1) end
+end)
     if _G.FB then Lighting.Ambient = Color3.new(1,1,1); Lighting.OutdoorAmbient = Color3.new(1,1,1) end
 end)
 
