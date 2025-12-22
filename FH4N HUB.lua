@@ -1,108 +1,146 @@
-local Player = game.Players.LocalPlayer
-local PlayerGui = Player:WaitForChild("PlayerGui")
-local Camera = workspace.CurrentCamera
-local Lighting = game:GetService("Lighting")
-local RunService = game:GetService("RunService")
+-- FH4N HUB | V.9 ULTIMATE (MAX ZOOM FIXED)
+local Player = game:GetService("Players").LocalPlayer
 local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
+local Camera = workspace.CurrentCamera
 
--- Anti-Double Script
-if PlayerGui:FindFirstChild("FH4N_V_FIXED") then PlayerGui.FH4N_V_FIXED:Destroy() end
+if game.CoreGui:FindFirstChild("FH4N_V9_ULTIMATE") then game.CoreGui.FH4N_V9_ULTIMATE:Destroy() end
 
-local sg = Instance.new("ScreenGui", PlayerGui)
-sg.Name = "FH4N_V_FIXED"
+local sg = Instance.new("ScreenGui", game.CoreGui)
+sg.Name = "FH4N_V9_ULTIMATE"
 sg.ResetOnSpawn = false
 
--- --- DRAG FUNCTION (Sangat Stabil) ---
+-- --- DRAG SYSTEM ---
 local function MakeDraggable(frame)
     local dragging, dragInput, dragStart, startPos
     frame.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true; dragStart = input.Position; startPos = frame.Position
-            input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
         end
     end)
-    frame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
-    end)
     UIS.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - dragStart
             frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
+    UIS.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
+    end)
 end
 
--- --- UI MAIN ---
+-- --- MAIN UI ---
 local main = Instance.new("Frame", sg)
-main.Size = UDim2.new(0, 400, 0, 300); main.Position = UDim2.new(0.5, -200, 0.5, -150)
-main.BackgroundColor3 = Color3.fromRGB(15, 15, 20); main.BorderSizePixel = 0
+main.Size = UDim2.new(0, 450, 0, 320); main.Position = UDim2.new(0.5, -225, 0.5, -160)
+main.BackgroundColor3 = Color3.fromRGB(12, 12, 15); main.BorderSizePixel = 0
 Instance.new("UICorner", main).CornerRadius = UDim.new(0, 10)
 MakeDraggable(main)
 
-local sidebar = Instance.new("Frame", main)
-sidebar.Size = UDim2.new(0, 100, 1, 0); sidebar.BackgroundColor3 = Color3.fromRGB(25, 25, 30); sidebar.BorderSizePixel = 0
-Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0, 10)
+local sb = Instance.new("Frame", main)
+sb.Size = UDim2.new(0, 110, 1, 0); sb.BackgroundColor3 = Color3.fromRGB(20, 20, 25); sb.BorderSizePixel = 0
+Instance.new("UICorner", sb).CornerRadius = UDim.new(0, 10)
 
-local container = Instance.new("Frame", main)
-container.Size = UDim2.new(1, -115, 1, -10); container.Position = UDim2.new(0, 110, 0, 5); container.BackgroundTransparency = 1
+local cont = Instance.new("Frame", main)
+cont.Position = UDim2.new(0, 115, 0, 5); cont.Size = UDim2.new(1, -120, 1, -10); cont.BackgroundTransparency = 1
 
 local function createPage(name)
-    local p = Instance.new("ScrollingFrame", container)
-    p.Name = name; p.Size = UDim2.new(1, 0, 1, 0); p.Visible = false; p.BackgroundTransparency = 1; p.CanvasSize = UDim2.new(0,0,2.5,0); p.ScrollBarThickness = 0
+    local p = Instance.new("ScrollingFrame", cont)
+    p.Name = name; p.Size = UDim2.new(1, 0, 1, 0); p.Visible = false
+    p.BackgroundTransparency = 1; p.ScrollBarThickness = 2; p.CanvasSize = UDim2.new(0,0,5,0) -- Canvas diperbesar agar muat banyak
     Instance.new("UIListLayout", p).Padding = UDim.new(0, 5)
     return p
 end
 
-local pgPlayer = createPage("Player"); pgPlayer.Visible = true
-local pgVisual = createPage("Visual"); local pgWorld = createPage("World")
+local pgP = createPage("P1"); pgP.Visible = true 
+local pgV = createPage("P2") 
+local pgW = createPage("P3") 
+local pgM = createPage("P4") 
 
 -- --- UI BUILDER ---
-local function AddTab(name, target, order)
-    local b = Instance.new("TextButton", sidebar)
-    b.Size = UDim2.new(0.9, 0, 0, 35); b.Position = UDim2.new(0.05, 0, 0, 45 + (40 * order))
-    b.Text = name; b.BackgroundColor3 = Color3.fromRGB(40, 40, 50); b.TextColor3 = Color3.new(1,1,1); b.Font = "GothamBold"; b.TextSize = 10; Instance.new("UICorner", b)
+local function AddTab(txt, target, order)
+    local b = Instance.new("TextButton", sb)
+    b.Size = UDim2.new(0.9, 0, 0, 32); b.Position = UDim2.new(0.05, 0, 0, 45 + (38 * order))
+    b.Text = txt; b.BackgroundColor3 = Color3.fromRGB(35, 35, 45); b.TextColor3 = Color3.new(1,1,1); b.Font = "GothamBold"; b.TextSize = 10; Instance.new("UICorner", b)
     b.MouseButton1Click:Connect(function()
-        for _, p in pairs(container:GetChildren()) do if p:IsA("ScrollingFrame") then p.Visible = false end end
-        target.Visible = true
+        pgP.Visible = false; pgV.Visible = false; pgW.Visible = false; pgM.Visible = false; target.Visible = true
     end)
 end
 
 local function AddToggle(parent, txt, cb)
-    local state = false
+    local s = false
     local b = Instance.new("TextButton", parent)
-    b.Size = UDim2.new(1, 0, 0, 35); b.BackgroundColor3 = Color3.fromRGB(30, 30, 35); b.Text = txt .. ": OFF"; b.TextColor3 = Color3.new(0.8,0.8,0.8); b.Font = "Gotham"; b.TextSize = 10; Instance.new("UICorner", b)
+    b.Size = UDim2.new(1, -10, 0, 35); b.Text = txt .. ": OFF"; b.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+    b.TextColor3 = Color3.new(0.8, 0.8, 0.8); b.Font = "Gotham"; b.TextSize = 10; Instance.new("UICorner", b)
     b.MouseButton1Click:Connect(function()
-        state = not state
-        b.BackgroundColor3 = state and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(30, 30, 35)
-        b.Text = txt .. ": " .. (state and "ON" or "OFF"); cb(state)
+        s = not s; b.BackgroundColor3 = s and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(25, 25, 30)
+        b.Text = txt .. ": " .. (s and "ON" or "OFF"); cb(s)
     end)
 end
 
-local function AddInput(parent, placeholder, cb)
+local function AddInput(parent, place, cb)
     local t = Instance.new("TextBox", parent)
-    t.Size = UDim2.new(1, 0, 0, 35); t.PlaceholderText = placeholder; t.BackgroundColor3 = Color3.fromRGB(20, 20, 25); t.TextColor3 = Color3.new(1,1,1); t.Font = "Gotham"; t.TextSize = 10; Instance.new("UICorner", t)
-    t.FocusLost:Connect(function(e) if e then cb(t.Text) end end)
+    t.Size = UDim2.new(1, -10, 0, 35); t.PlaceholderText = place; t.Text = ""
+    t.BackgroundColor3 = Color3.fromRGB(15, 15, 20); t.TextColor3 = Color3.new(1, 1, 1); t.Font = "Gotham"; t.TextSize = 10; Instance.new("UICorner", t)
+    t.FocusLost:Connect(function(ent) if ent then cb(t.Text) end end)
 end
 
-AddTab("PLAYER", pgPlayer, 0); AddTab("VISUAL", pgVisual, 1); AddTab("WORLD", pgWorld, 2)
+local function AddBtn(parent, txt, cb)
+    local b = Instance.new("TextButton", parent)
+    b.Size = UDim2.new(1, -10, 0, 35); b.Text = txt; b.BackgroundColor3 = Color3.fromRGB(40, 40, 50); b.TextColor3 = Color3.new(1,1,1); b.Font = "Gotham"; b.TextSize = 10; Instance.new("UICorner", b)
+    b.MouseButton1Click:Connect(cb)
+end
+
+-- --- NAVIGATION ---
+AddTab("PLAYER", pgP, 0); AddTab("VISUAL", pgV, 1); AddTab("WORLD", pgW, 2); AddTab("MISC", pgM, 3)
 
 -- ==========================================
--- [ PLAYER: FLY ANALOG ]
+-- [ 1. PLAYER: AIM, FLY, SPEED, JUMP, ZOOM ]
 -- ==========================================
-AddToggle(pgPlayer, "Fly Analog (Input Based)", function(s)
-    _G.Fly = s
-    if s then
+
+-- AUTO AIM
+local function GetClosestPlayer()
+    local closest, dist = nil, math.huge
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= Player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") and v.Character.Humanoid.Health > 0 then
+            local d = (v.Character.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude
+            if d < dist then dist = d; closest = v end
+        end
+    end
+    return closest
+end
+AddToggle(pgP, "Auto Aim (Lock)", function(v)
+    _G.AutoAim = v
+    task.spawn(function()
+        while _G.AutoAim do
+            local target = GetClosestPlayer()
+            if target and target.Character then Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character.HumanoidRootPart.Position) end
+            task.wait()
+        end
+    end)
+end)
+
+-- FLY SYSTEM
+local flyUp, flyDown = false, false
+local ctrl = Instance.new("Frame", sg); ctrl.Size = UDim2.new(0, 60, 0, 130); ctrl.Position = UDim2.new(1, -75, 0.5, -65); ctrl.BackgroundTransparency = 1; ctrl.Visible = false
+local function makeFlyBtn(txt, pos, cb_s, cb_e)
+    local b = Instance.new("TextButton", ctrl); b.Size = UDim2.new(1,0,0,60); b.Position = pos; b.Text = txt; b.BackgroundColor3 = Color3.new(0,0,0); b.BackgroundTransparency = 0.5; b.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", b)
+    b.MouseButton1Down:Connect(cb_s); b.MouseButton1Up:Connect(cb_e)
+end
+makeFlyBtn("UP", UDim2.new(0,0,0,0), function() flyUp = true end, function() flyUp = false end)
+makeFlyBtn("DOWN", UDim2.new(0,0,0,70), function() flyDown = true end, function() flyDown = false end)
+
+AddToggle(pgP, "Fly Pure Analog", function(v)
+    _G.Fly = v; ctrl.Visible = v
+    if v then
         local root = Player.Character:WaitForChild("HumanoidRootPart")
-        local bv = Instance.new("BodyVelocity", root); bv.MaxForce = Vector3.new(1e6,1e6,1e6); bv.Name = "V_FlyV"
-        local bg = Instance.new("BodyGyro", root); bg.MaxTorque = Vector3.new(1e6,1e6,1e6); bg.Name = "V_FlyG"
+        local bv = Instance.new("BodyVelocity", root); bv.MaxForce = Vector3.new(1e6,1e6,1e6); bv.Name = "V9FlyV"
+        local bg = Instance.new("BodyGyro", root); bg.MaxTorque = Vector3.new(1e6,1e6,1e6); bg.Name = "V9FlyG"
         task.spawn(function()
             while _G.Fly do
-                -- Gerakan mengikuti arah pandangan kamera saat analog ditekan
-                if Player.Character.Humanoid.MoveDirection.Magnitude > 0 then
-                    bv.Velocity = Camera.CFrame.LookVector * (_G.WS or 50)
-                else
-                    bv.Velocity = Vector3.new(0, 0.1, 0)
-                end
+                local md = Player.Character.Humanoid.MoveDirection
+                local y = (flyUp and 1 or 0) + (flyDown and -1 or 0)
+                bv.Velocity = (md * (_G.WS or 50)) + Vector3.new(0, y * (_G.WS or 50), 0)
                 bg.CFrame = Camera.CFrame; task.wait()
             end
             bv:Destroy(); bg:Destroy()
@@ -110,82 +148,71 @@ AddToggle(pgPlayer, "Fly Analog (Input Based)", function(s)
     end
 end)
 
-AddToggle(pgPlayer, "Noclip", function(s) _G.Nc = s end)
-AddInput(pgPlayer, "Speed / Fly Speed", function(v) _G.WS = tonumber(v) end)
-AddInput(pgPlayer, "Set Max Zoom", function(v) Player.CameraMaxZoomDistance = tonumber(v) end)
+-- STATS (SPEED, JUMP, ZOOM, GRAVITY)
+AddInput(pgP, "Speed / FlySpeed", function(v) _G.WS = tonumber(v) end)
+AddInput(pgP, "Jump Power", function(v) Player.Character.Humanoid.JumpPower = tonumber(v); Player.Character.Humanoid.UseJumpPower = true end)
+AddInput(pgP, "MAX ZOOM (Distance)", function(v) Player.CameraMaxZoomDistance = tonumber(v) end)
+AddInput(pgP, "Gravity Changer", function(v) workspace.Gravity = tonumber(v) end)
+AddToggle(pgP, "Noclip", function(v) _G.Nc = v end)
+AddToggle(pgP, "Infinite Jump", function(v) _G.IJ = v end)
 
 -- ==========================================
--- [ VISUAL: FIX FPS & FREECAM ]
+-- [ 2. VISUAL: ESP, FPS, FOV ]
 -- ==========================================
-AddToggle(pgVisual, "FPS Counter (Smooth Update)", function(s)
-    _G.ShowFPS = s
-    if s then
-        local fl = Instance.new("TextLabel", sg); fl.Size = UDim2.new(0, 70, 0, 25); fl.Position = UDim2.new(0, 10, 0, 10); fl.BackgroundColor3 = Color3.new(0,0,0); fl.TextColor3 = Color3.new(0,1,0); fl.BackgroundTransparency = 0.5; fl.Font = "GothamBold"; fl.TextSize = 12
-        Instance.new("UICorner", fl)
-        local lastTime = tick()
-        local frameCount = 0
+AddToggle(pgV, "ESP Player Highlight", function(v)
+    _G.ESP = v
+    task.spawn(function()
+        while _G.ESP do
+            for _,p in pairs(game.Players:GetPlayers()) do
+                if p ~= Player and p.Character and not p.Character:FindFirstChild("Highlight") then Instance.new("Highlight", p.Character) end
+            end; task.wait(2)
+        end
+        for _,p in pairs(game.Players:GetPlayers()) do if p.Character and p.Character:FindFirstChild("Highlight") then p.Character.Highlight:Destroy() end end
+    end)
+end)
+
+AddToggle(pgV, "Show FPS", function(v)
+    _G.FPS = v
+    if v then
+        local l = Instance.new("TextLabel", sg); l.Size = UDim2.new(0,70,0,25); l.Position = UDim2.new(0,10,0,10); l.BackgroundColor3 = Color3.new(0,0,0); l.TextColor3 = Color3.new(0,1,0); l.BackgroundTransparency = 0.5
+        local f = 0; local lt = tick()
         RunService.RenderStepped:Connect(function()
-            if not _G.ShowFPS then fl:Destroy() return end
-            frameCount = frameCount + 1
-            if tick() - lastTime >= 1 then
-                fl.Text = "FPS: " .. frameCount
-                frameCount = 0
-                lastTime = tick()
-            end
+            if not _G.FPS then l:Destroy() return end
+            f = f + 1; if tick()-lt >= 1 then l.Text = "FPS: "..f; f = 0; lt = tick() end
         end)
     end
 end)
+AddInput(pgV, "Camera FOV", function(v) Camera.FieldOfView = tonumber(v) end)
 
-AddToggle(pgVisual, "Freecam (Independent)", function(s)
-    _G.Freecam = s
-    if s then
-        local part = Instance.new("Part", workspace); part.Anchored = true; part.CanCollide = false; part.Transparency = 1; part.Position = Camera.CFrame.Position
-        Camera.CameraSubject = part; _G.FCPart = part
-        task.spawn(function()
-            while _G.Freecam do
-                local md = Player.Character.Humanoid.MoveDirection
-                if md.Magnitude > 0 then
-                    part.CFrame = part.CFrame * CFrame.new(md.X * 2, 0, md.Z * 2)
-                    part.CFrame = CFrame.new(part.Position, part.Position + Camera.CFrame.LookVector)
-                end
-                task.wait()
-            end
-        end)
-    else
-        if _G.FCPart then _G.FCPart:Destroy() end
-        Camera.CameraSubject = Player.Character.Humanoid
-    end
+-- ==========================================
+-- [ 3. WORLD & 4. MISC ]
+-- ==========================================
+AddToggle(pgW, "FullBright", function(v) _G.FB = v end)
+AddBtn(pgW, "☀️ Siang", function() Lighting.ClockTime = 14 end)
+AddBtn(pgW, "🌙 Malam", function() Lighting.ClockTime = 0 end)
+
+AddToggle(pgM, "Auto Clicker", function(v)
+    _G.AC = v
+    task.spawn(function()
+        while _G.AC do
+            local tool = Player.Character and Player.Character:FindFirstChildOfClass("Tool")
+            if tool then tool:Activate() end
+            task.wait(0.1)
+        end
+    end)
 end)
+AddBtn(pgM, "Rejoin Game", function() game:GetService("TeleportService"):Teleport(game.PlaceId, Player) end)
 
--- ==========================================
--- [ WORLD: WEATHER ]
--- ==========================================
-local function AddW(txt, ct)
-    local b = Instance.new("TextButton", pgWorld)
-    b.Size = UDim2.new(1, 0, 0, 35); b.Text = txt; b.BackgroundColor3 = Color3.fromRGB(40,40,50); b.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", b)
-    b.MouseButton1Click:Connect(function() Lighting.ClockTime = ct end)
-end
-AddW("☀️ Siang", 14); AddW("🌙 Malam", 0); AddW("🌅 Sunset", 17.5)
-
--- --- SYSTEM LOOP ---
+-- --- CORE SYSTEM ---
+UIS.JumpRequest:Connect(function() if _G.IJ then Player.Character.Humanoid:ChangeState(3) end end)
 RunService.Stepped:Connect(function()
     if Player.Character and Player.Character:FindFirstChild("Humanoid") then
-        if _G.WS and not _G.Fly and not _G.Freecam then Player.Character.Humanoid.WalkSpeed = _G.WS end
-        if _G.Nc then for _, v in pairs(Player.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end end
+        if _G.WS and not _G.Fly then Player.Character.Humanoid.WalkSpeed = _G.WS end
+        if _G.Nc then for _,v in pairs(Player.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end end
     end
+    if _G.FB then Lighting.Ambient = Color3.new(1,1,1); Lighting.OutdoorAmbient = Color3.new(1,1,1) end
 end)
 
--- --- MINIMIZE BUTTON ---
-local min = Instance.new("TextButton", sg)
-min.Size = UDim2.new(0, 45, 0, 45); min.Position = UDim2.new(0, 10, 0.4, 0); min.Text = "FN"; min.BackgroundColor3 = Color3.fromRGB(0, 120, 255); min.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", min).CornerRadius = UDim.new(1,0)
-MakeDraggable(min); min.MouseButton1Click:Connect(function() main.Visible = not main.Visible end)hen Player.Character.Humanoid.WalkSpeed = _G.WS end
-        if _G.Nc then for _, v in pairs(Player.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end end
-    end
-end)
-
--- --- LOGO FN (DRAGGABLE) ---
-local min = Instance.new("TextButton", sg)
-min.Size = UDim2.new(0, 45, 0, 45); min.Position = UDim2.new(0, 10, 0.4, 0); min.Text = "FN"; min.BackgroundColor3 = Color3.fromRGB(0, 120, 255); min.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", min).CornerRadius = UDim.new(1,0)
-MakeDraggable(min)
-min.MouseButton1Click:Connect(function() main.Visible = not main.Visible end)
+-- --- MINIMIZE ---
+local m = Instance.new("TextButton", sg); m.Size = UDim2.new(0, 45, 0, 45); m.Position = UDim2.new(0, 10, 0.4, 0); m.Text = "FN"; m.BackgroundColor3 = Color3.fromRGB(0, 120, 255); m.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", m).CornerRadius = UDim.new(1,0)
+MakeDraggable(m); m.MouseButton1Click:Connect(function() main.Visible = not main.Visible end)
