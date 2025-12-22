@@ -1,63 +1,86 @@
--- FH4N HUB | ALL-IN-ONE FINAL STABLE
-local LPlayer = game.Players.LocalPlayer
+-- FH4N HUB | ORGANIZED CATEGORIES
+local Player = game.Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
 local Camera = workspace.CurrentCamera
 local RunService = game:GetService("RunService")
 
--- Bersihkan script lama agar tidak tumpang tindih
-if game.CoreGui:FindFirstChild("FH4N_FINAL") then game.CoreGui.FH4N_FINAL:Destroy() end
+-- Bersihkan sisa script lama
+if PlayerGui:FindFirstChild("FH4N_FINAL_ORG") then PlayerGui.FH4N_FINAL_ORG:Destroy() end
 
--- --- UI DASAR (Sangat Ringan) ---
-local sg = Instance.new("ScreenGui", game.CoreGui)
-sg.Name = "FH4N_FINAL"
+local sg = Instance.new("ScreenGui", PlayerGui)
+sg.Name = "FH4N_FINAL_ORG"
+sg.ResetOnSpawn = false
 
-local frame = Instance.new("Frame", sg)
-frame.Size = UDim2.new(0, 220, 0, 350)
-frame.Position = UDim2.new(0.5, -110, 0.5, -175)
-frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-frame.Active = true
-frame.Draggable = true -- Fitur drag paling stabil
+local main = Instance.new("Frame", sg)
+main.Size = UDim2.new(0, 260, 0, 380)
+main.Position = UDim2.new(0.5, -130, 0.5, -190)
+main.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+main.BorderSizePixel = 2
+main.Active = true
+main.Draggable = true
 
-local title = Instance.new("TextLabel", frame)
+local title = Instance.new("TextLabel", main)
 title.Size = UDim2.new(1, 0, 0, 35)
-title.Text = "FH4N HUB | ULTIMATE"
-title.BackgroundColor3 = Color3.fromRGB(0, 0, 200)
+title.Text = "FH4N HUB | ALL FEATURES"
+title.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
 title.TextColor3 = Color3.new(1, 1, 1)
-title.Font = Enum.Font.SourceSansBold
+title.Font = "SourceSansBold"
 
-local scroll = Instance.new("ScrollingFrame", frame)
+local scroll = Instance.new("ScrollingFrame", main)
 scroll.Size = UDim2.new(1, -10, 1, -45)
 scroll.Position = UDim2.new(0, 5, 0, 40)
 scroll.BackgroundTransparency = 1
-scroll.CanvasSize = UDim2.new(0, 0, 2.5, 0)
+scroll.CanvasSize = UDim2.new(0, 0, 5, 0)
 scroll.ScrollBarThickness = 4
 
 local layout = Instance.new("UIListLayout", scroll)
 layout.Padding = UDim.new(0, 5)
 
--- --- FUNGSI PEMBUAT FITUR ---
-local function AddButton(txt, callback)
+-- --- FUNGSI PENGELOMPOKAN (DROPDOWN) ---
+local function CreateCategory(name)
+    local catFrame = Instance.new("Frame", scroll)
+    catFrame.Size = UDim2.new(1, 0, 0, 30)
+    catFrame.BackgroundColor3 = Color3.fromRGB(0, 80, 200)
+    
+    local catLabel = Instance.new("TextLabel", catFrame)
+    catLabel.Size = UDim2.new(1, 0, 1, 0)
+    catLabel.Text = "[ " .. name .. " ]"
+    catLabel.TextColor3 = Color3.new(1, 1, 1)
+    catLabel.BackgroundTransparency = 1
+    catLabel.Font = "SourceSansBold"
+end
+
+local function CreateButton(txt, cb)
     local b = Instance.new("TextButton", scroll)
     b.Size = UDim2.new(1, 0, 0, 35)
     b.Text = txt
-    b.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    b.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
     b.TextColor3 = Color3.new(1, 1, 1)
-    b.Font = Enum.Font.SourceSans
-    b.MouseButton1Click:Connect(callback)
-    return b
+    b.MouseButton1Click:Connect(cb)
+end
+
+local function CreateInput(placeholder, cb)
+    local t = Instance.new("TextBox", scroll)
+    t.Size = UDim2.new(1, 0, 0, 35)
+    t.PlaceholderText = placeholder
+    t.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    t.TextColor3 = Color3.new(1, 1, 1)
+    t.FocusLost:Connect(function(enter) if enter then cb(t.text) end end)
 end
 
 -- ==========================================
--- 1. FITUR PLAYER (FLY, SPEED, JUMP, NOCLIP)
+-- [ KATEGORI 1: PLAYER ]
 -- ==========================================
+CreateCategory("PLAYER FEATURES")
 
-AddButton("FLY (ON/OFF)", function()
+CreateButton("FLY (ON/OFF)", function()
     _G.Fly = not _G.Fly
     if _G.Fly then
-        local bv = Instance.new("BodyVelocity", LPlayer.Character.HumanoidRootPart)
+        local bv = Instance.new("BodyVelocity", Player.Character.HumanoidRootPart)
         bv.Name = "FlyV"; bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
         task.spawn(function()
             while _G.Fly do
-                bv.Velocity = Camera.CFrame.LookVector * (_G.Speed or 50)
+                bv.Velocity = Camera.CFrame.LookVector * (_G.WS or 50)
                 task.wait()
             end
             bv:Destroy()
@@ -65,161 +88,80 @@ AddButton("FLY (ON/OFF)", function()
     end
 end)
 
-AddButton("NOCLIP (ON/OFF)", function()
-    _G.Noclip = not _G.Noclip
-    RunService.Stepped:Connect(function()
-        if _G.Noclip and LPlayer.Character then
-            for _, v in pairs(LPlayer.Character:GetDescendants()) do
+CreateButton("NOCLIP (ON/OFF)", function() _G.Nc = not _G.Nc end)
+CreateButton("INF JUMP (ON)", function() 
+    game:GetService("UserInputService").JumpRequest:Connect(function() Player.Character.Humanoid:ChangeState(3) end)
+end)
+
+CreateInput("Set WalkSpeed", function(val) _G.WS = tonumber(val) end)
+CreateInput("Set JumpPower", function(val) Player.Character.Humanoid.JumpPower = tonumber(val); Player.Character.Humanoid.UseJumpPower = true end)
+CreateInput("TP Player Name", function(val) 
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v.Name:lower():find(val:lower()) then Player.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame end
+    end
+end)
+
+-- ==========================================
+-- [ KATEGORI 2: VISUAL ]
+-- ==========================================
+CreateCategory("VISUAL & GRAPHICS")
+
+CreateButton("REALISTIC MAX", function()
+    local b = Instance.new("BloomEffect", game.Lighting); b.Intensity = 1
+    local c = Instance.new("ColorCorrectionEffect", game.Lighting); c.Saturation = 0.5
+    game.Lighting.Brightness = 2.5
+    game.Lighting.GlobalShadows = true
+end)
+
+CreateButton("FULL BRIGHT", function() 
+    game.Lighting.Ambient = Color3.new(1,1,1); game.Lighting.OutdoorAmbient = Color3.new(1,1,1) 
+end)
+
+CreateButton("FREECAM (SMOOTH)", function()
+    local p = Instance.new("Part", workspace); p.Anchored = true; p.Transparency = 1; p.CFrame = Camera.CFrame; Camera.CameraSubject = p
+    task.spawn(function()
+        while p.Parent do
+            p.CFrame = p.CFrame * CFrame.new(Player.Character.Humanoid.MoveDirection * 1.8)
+            Camera.CFrame = p.CFrame
+            task.wait()
+        end
+    end)
+end)
+
+CreateButton("ESP PLAYER", function()
+    for _, p in pairs(game.Players:GetPlayers()) do
+        if p ~= Player and p.Character then
+            local h = Instance.new("Highlight", p.Character); h.FillColor = Color3.new(1, 0, 0)
+        end
+    end
+end)
+
+-- ==========================================
+-- [ KATEGORI 3: WORLD ]
+-- ==========================================
+CreateCategory("WORLD SETTINGS")
+
+CreateButton("SET DAY (SIANG)", function() game.Lighting.ClockTime = 14 end)
+CreateButton("SET NIGHT (MALAM)", function() game.Lighting.ClockTime = 0 end)
+CreateButton("UNLOCK FPS", function() setfpscap(999) end)
+
+-- --- LOOP SISTEM ---
+RunService.Stepped:Connect(function()
+    if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+        if _G.WS then Player.Character.Humanoid.WalkSpeed = _G.WS end
+        if _G.Nc then
+            for _, v in pairs(Player.Character:GetDescendants()) do
                 if v:IsA("BasePart") then v.CanCollide = false end
             end
         end
-    end)
-end)
-
-AddButton("INF JUMP (ON)", function()
-    game:GetService("UserInputService").JumpRequest:Connect(function()
-        LPlayer.Character.Humanoid:ChangeState(3)
-    end)
-end)
-
-local speedBox = Instance.new("TextBox", scroll)
-speedBox.Size = UDim2.new(1, 0, 0, 35); speedBox.PlaceholderText = "Set Speed (Enter)"; speedBox.Text = ""; speedBox.FocusLost:Connect(function() _G.Speed = tonumber(speedBox.Text); LPlayer.Character.Humanoid.WalkSpeed = _G.Speed end)
-
--- ==========================================
--- 2. FITUR VISUAL (REALISTIC, BRIGHT, ESP)
--- ==========================================
-
-AddButton("REALISTIC MAX", function()
-    local b = Instance.new("BloomEffect", game.Lighting); b.Intensity = 1
-    local c = Instance.new("ColorCorrectionEffect", game.Lighting); c.Saturation = 0.5; c.Contrast = 0.2
-    local s = Instance.new("SunRaysEffect", game.Lighting); s.Intensity = 0.1
-    game.Lighting.Brightness = 2
-end)
-
-AddButton("FULL BRIGHT", function()
-    game.Lighting.Ambient = Color3.new(1, 1, 1)
-    game.Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
-end)
-
-AddButton("ESP PLAYER", function()
-    for _, p in pairs(game.Players:GetPlayers()) do
-        if p ~= LPlayer and p.Character then
-            local h = Instance.new("Highlight", p.Character)
-            h.FillColor = Color3.fromRGB(255, 0, 0)
-        end
     end
 end)
 
--- ==========================================
--- 3. TELEPORT & FREECAM
--- ==========================================
-
-local tpBox = Instance.new("TextBox", scroll)
-tpBox.Size = UDim2.new(1, 0, 0, 35); tpBox.PlaceholderText = "TP to Player (Name)"; tpBox.FocusLost:Connect(function()
-    for _, v in pairs(game.Players:GetPlayers()) do
-        if v.Name:lower():find(tpBox.Text:lower()) then
-            LPlayer.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame
-        end
-    end
-end)
-
-AddButton("FREECAM", function()
-    local p = Instance.new("Part", workspace); p.Anchored = true; p.Transparency = 1; p.CFrame = Camera.CFrame
-    Camera.CameraSubject = p
-    task.spawn(function()
-        while task.wait() do
-            p.CFrame = p.CFrame * CFrame.new(LPlayer.Character.Humanoid.MoveDirection * 2)
-            Camera.CFrame = p.CFrame
-        end
-    end)
-end)
-
--- --- TOMBOL CLOSE & MINIMIZE ---
-local close = Instance.new("TextButton", frame)
-close.Size = UDim2.new(0, 30, 0, 30); close.Position = UDim2.new(1, -30, 0, 0); close.Text = "X"; close.BackgroundColor3 = Color3.new(1, 0, 0); close.MouseButton1Click:Connect(function() sg:Destroy() end)
-
+-- TOMBOL FN (Minimize)
 local min = Instance.new("TextButton", sg)
-min.Size = UDim2.new(0, 50, 0, 50); min.Position = UDim2.new(0, 10, 0.5, 0); min.Text = "FN"; min.BackgroundColor3 = Color3.new(0, 0, 1); min.TextColor3 = Color3.new(1,1,1); min.Draggable = true; min.MouseButton1Click:Connect(function() frame.Visible = not frame.Visible end)) end)
-
--- --- LOOP SISTEM ---
-RunService.RenderStepped:Connect(function()
-    if LPlayer.Character and LPlayer.Character:FindFirstChild("Humanoid") then
-        if _G.WalkSpeed then LPlayer.Character.Humanoid.WalkSpeed = _G.WalkSpeed end
-        if _G.Noclip then for _,v in pairs(LPlayer.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end end
-    end
-end)
-
-UIS.JumpRequest:Connect(function()
-    if _G.InfJump and LPlayer.Character then LPlayer.Character.Humanoid:ChangeState(3) end
-end)
-
-task.spawn(function()
-    while task.wait(1) do
-        for _,p in pairs(Players:GetPlayers()) do
-            if p ~= LPlayer and p.Character and p.Character:FindFirstChild("Head") then
-                local tag = p.Character.Head:FindFirstChild("ESP_TAG")
-                if _G.ESP and not tag then
-                    local b = Instance.new("BillboardGui", p.Character.Head); b.Name = "ESP_TAG"; b.Size = UDim2.new(0,100,0,40); b.AlwaysOnTop = true
-                    local l = Instance.new("TextLabel", b); l.Size = UDim2.new(1,0,1,0); l.Text = p.DisplayName; l.TextColor3 = Color3.new(1,1,1); l.BackgroundTransparency = 1; l.Font = "SourceSansBold"
-                elseif not _G.ESP and tag then tag:Destroy() end
-            end
-        end
-    end
-end)-- ==========================================
--- KATEGORI: WEATHER SETTINGS
--- ==========================================
-local WeatherGrp = CreateDropdown("WEATHER SETTINGS")
-local function CreateWButton(name, time, dens)
-    local btn = Instance.new("TextButton", WeatherGrp); btn.Size = UDim2.new(0.95, 0, 0, 38); btn.BackgroundColor3 = Color3.fromRGB(45,45,45); btn.Text = name; btn.TextColor3 = Color3.fromRGB(255,255,255); btn.Font = "SourceSansBold"; Instance.new("UICorner", btn)
-    btn.MouseButton1Click:Connect(function() Lighting.ClockTime = time; if Lighting:FindFirstChild("W_Atm") then Lighting.W_Atm:Destroy() end; local a = Instance.new("Atmosphere", Lighting); a.Name = "W_Atm"; a.Density = dens end)
-end
-CreateWButton("☀️ Siang Realistis", 14, 0.2); CreateWButton("🌙 Malam Cinematic", 0, 0.1); CreateWButton("❄️ Musim Salju", 12, 0.45); CreateWButton("🏝️ Musim Pantai", 15, 0.15)
-
--- --- CORE LOOPS ---
-RunService.Stepped:Connect(function() if _G.Noclip and LPlayer.Character then for _,v in pairs(LPlayer.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end end end)
-UIS.JumpRequest:Connect(function() if _G.InfJump and LPlayer.Character then LPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping") end end)
-task.spawn(function()
-    while task.wait(0.5) do
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= LPlayer and p.Character and p.Character:FindFirstChild("Head") then
-                local tag = p.Character.Head:FindFirstChild("FN_ESP")
-                if _G.ESP and not tag then
-                    local bb = Instance.new("BillboardGui", p.Character.Head); bb.Name = "FN_ESP"; bb.Size = UDim2.new(0, 100, 0, 40); bb.AlwaysOnTop = true
-                    local lbl = Instance.new("TextLabel", bb); lbl.Size = UDim2.new(1,0,1,0); lbl.BackgroundTransparency = 1; lbl.TextColor3 = Color3.fromRGB(255,255,255); lbl.Text = p.DisplayName; lbl.Font = "SourceSansBold"
-                elseif not _G.ESP and tag then tag:Destroy() end
-            end
-        end
-    end
-end)cal function ResetWeather()
-    Lighting.ClockTime = 14; Lighting.Brightness = 2; Lighting.FogEnd = 100000
-    if Lighting:FindFirstChild("W_Atm") then Lighting.W_Atm:Destroy() end
-end
-
-local function CreateWButton(name, time, dens)
-    local btn = Instance.new("TextButton", WeatherGrp)
-    btn.Size = UDim2.new(0.95, 0, 0, 38); btn.BackgroundColor3 = Color3.fromRGB(45,45,45); btn.Text = name; btn.TextColor3 = Color3.fromRGB(255,255,255); btn.Font = "SourceSansBold"
-    Instance.new("UICorner", btn)
-    btn.MouseButton1Click:Connect(function()
-        ResetWeather(); Lighting.ClockTime = time
-        local a = Instance.new("Atmosphere", Lighting); a.Name = "W_Atm"; a.Density = dens
-    end)
-end
-
-CreateWButton("☀️ Siang", 14, 0.2)
-CreateWButton("🌙 Malam", 0, 0.1)
-CreateWButton("❄️ Salju", 12, 0.45)
-CreateWButton("🏝️ Pantai", 15, 0.15)
-
--- --- LOOPING ---
-RunService.Stepped:Connect(function()
-    if _G.Noclip and LPlayer.Character then
-        for _,v in pairs(LPlayer.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end
-    end
-end)
-
-UIS.JumpRequest:Connect(function() if _G.InfJump and LPlayer.Character then LPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping") end end)
-
-task.spawn(function()
+min.Size = UDim2.new(0, 45, 0, 45); min.Position = UDim2.new(0, 5, 0.4, 0); min.Text = "FN"
+min.BackgroundColor3 = Color3.new(0, 0, 1); min.TextColor3 = Color3.new(1, 1, 1)
+min.MouseButton1Click:Connect(function() main.Visible = not main.Visible end)ction()
     while task.wait(0.5) do
         for _, p in pairs(Players:GetPlayers()) do
             if p ~= LPlayer and p.Character and p.Character:FindFirstChild("Head") then
