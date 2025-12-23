@@ -166,20 +166,7 @@ RunService.Heartbeat:Connect(function()
         if _G.FB then Lighting.Ambient = Color3.new(1,1,1); Lighting.Brightness = 2 end
     end)
 end)
-UIS.JumpRequest:Connect(function() if _G.IJ and Player.Character then Player.Character.Humanoid:ChangeState(3) end end)unService.Stepped:Connect(function()
-    if Player.Character and Player.Character:FindFirstChild("Humanoid") then
-        if _G.WS and not _G.Fly then Player.Character.Humanoid.WalkSpeed = _G.WS end
-        if _G.Nc then for _,v in pairs(Player.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end end
-    end
-    if _G.FB then Lighting.Ambient = Color3.new(1,1,1); Lighting.OutdoorAmbient = Color3.new(1,1,1) end
-end)
-
--- --- MINIMIZE BUTTON ---
-local m = Instance.new("TextButton", sg); m.Size = UDim2.new(0, 45, 0, 45); m.Position = UDim2.new(0, 10, 0.4, 0); m.Text = "FN"; m.BackgroundColor3 = Color3.fromRGB(0, 120, 255); m.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", m).CornerRadius = UDim.new(1,0)
-MakeDraggable(m); m.MouseButton1Click:Connect(function() main.Visible = not main.Visible end)alkSpeed = _G.WS end
-        if _G.Nc then for _,v in pairs(Player.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end end
-    end
-    if _G.FB then Lighting.Ambient = Color3.new(1,1,1); Lighting.OutdoorAmbient = Color3.new(1,1,1) end
+UIS.JumpRequest:Connect(function() if _G.IJ and Player.Character then Player.Character.Humanoid:ChangeState(3) end end)r3.new(1,1,1) end
 end)
 
 -- --- MINIMIZE ---
