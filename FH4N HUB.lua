@@ -1,4 +1,4 @@
--- [[ FH4N HUB V.40 - RESTORATION COMPLETE ]] --
+-- [[ FH4N HUB V.42 - ADIDAS ANIMATION UPDATE ]] --
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -7,14 +7,15 @@ local TeleportService = game:GetService("TeleportService")
 local Player = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
--- Global Config (Centralized)
+-- Global Config
 _G.FH4N = {
     WS = 16, JP = 50, IJ = false, Nc = false, 
     Fly = false, FB = false, Hitbox = false, 
-    ESP = false, AntiAFK = true, Spin = false
+    ESP = false, AntiAFK = true, Spin = false,
+    Freecam = false, MaxZoom = 128, Adidas = false
 }
 
--- Anti-AFK (Internal)
+-- Anti-AFK
 Player.Idled:Connect(function()
     if _G.FH4N.AntiAFK then
         game:GetService("VirtualUser"):CaptureController()
@@ -24,9 +25,8 @@ end)
 
 -- UI Setup
 local UI_PARENT = game:GetService("CoreGui") or Player:WaitForChild("PlayerGui")
-if UI_PARENT:FindFirstChild("FH4N_ULTIMATE") then UI_PARENT.FH4N_ULTIMATE:Destroy() end
-
-local sg = Instance.new("ScreenGui", UI_PARENT); sg.Name = "FH4N_ULTIMATE"
+if UI_PARENT:FindFirstChild("FH4N_V42") then UI_PARENT.FH4N_V42:Destroy() end
+local sg = Instance.new("ScreenGui", UI_PARENT); sg.Name = "FH4N_V42"
 
 -- --- DRAG SYSTEM ---
 local function Drag(f)
@@ -45,13 +45,13 @@ local function Drag(f)
     UIS.InputEnded:Connect(function(inp) if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then d = false end end)
 end
 
--- --- UI STRUCTURE ---
+-- --- MAIN PANEL ---
 local Main = Instance.new("Frame", sg)
-Main.Size = UDim2.new(0, 520, 0, 360); Main.Position = UDim2.new(0.5, -260, 0.5, -180)
-Main.BackgroundColor3 = Color3.fromRGB(12, 12, 15); Main.Visible = true; Main.BorderSizePixel = 0
+Main.Size = UDim2.new(0, 520, 0, 400); Main.Position = UDim2.new(0.5, -260, 0.5, -200)
+Main.BackgroundColor3 = Color3.fromRGB(10, 10, 12); Main.Visible = true; Main.BorderSizePixel = 0
 Instance.new("UICorner", Main); Drag(Main)
 
-local Sidebar = Instance.new("Frame", Main); Sidebar.Size = UDim2.new(0, 130, 1, 0); Sidebar.BackgroundColor3 = Color3.fromRGB(18, 18, 22); Instance.new("UICorner", Sidebar)
+local Sidebar = Instance.new("Frame", Main); Sidebar.Size = UDim2.new(0, 130, 1, 0); Sidebar.BackgroundColor3 = Color3.fromRGB(15, 15, 18); Instance.new("UICorner", Sidebar)
 local Container = Instance.new("Frame", Main); Container.Position = UDim2.new(0, 135, 0, 10); Container.Size = UDim2.new(1, -145, 1, -20); Container.BackgroundTransparency = 1
 
 local function CreatePage(name)
@@ -60,7 +60,7 @@ local function CreatePage(name)
     Instance.new("UIListLayout", p).Padding = UDim.new(0, 5); return p
 end
 
-local pages = { P = CreatePage("Player"), C = CreatePage("Combat"), V = CreatePage("Visual"), T = CreatePage("TP"), M = CreatePage("Misc") }
+local pages = { P = CreatePage("Player"), C = CreatePage("Combat"), Cam = CreatePage("Camera"), T = CreatePage("TP"), M = CreatePage("Misc") }
 pages.P.Visible = true
 
 -- --- UI BUILDERS ---
@@ -70,28 +70,14 @@ local function Tab(txt, target, order)
     Instance.new("UICorner", b); b.MouseButton1Click:Connect(function() for _, v in pairs(Container:GetChildren()) do v.Visible = false end; target.Visible = true end)
 end
 
-local function Toggle(p, txt, key)
+local function Toggle(p, txt, key, callback)
     local b = Instance.new("TextButton", p); b.Size = UDim2.new(1, -10, 0, 35); b.Text = txt .. ": OFF"
     b.BackgroundColor3 = Color3.fromRGB(25, 25, 30); b.TextColor3 = Color3.new(1, 1, 1); Instance.new("UICorner", b)
     b.MouseButton1Click:Connect(function()
         _G.FH4N[key] = not _G.FH4N[key]
         b.BackgroundColor3 = _G.FH4N[key] and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(25, 25, 30)
         b.Text = txt .. ": " .. (_G.FH4N[key] and "ON" or "OFF")
-        
-        if key == "Fly" and _G.FH4N.Fly then
-            task.spawn(function()
-                local r = Player.Character:WaitForChild("HumanoidRootPart")
-                local h = Player.Character:WaitForChild("Humanoid")
-                local bv = Instance.new("BodyVelocity", r); bv.MaxForce = Vector3.new(1e6,1e6,1e6)
-                local bg = Instance.new("BodyGyro", r); bg.MaxTorque = Vector3.new(1e6,1e6,1e6)
-                while _G.FH4N.Fly do
-                    bg.CFrame = Camera.CFrame
-                    bv.Velocity = (h.MoveDirection.Magnitude > 0) and (Camera.CFrame.LookVector * _G.FH4N.WS) or Vector3.new(0,0.1,0)
-                    task.wait()
-                end
-                bv:Destroy(); bg:Destroy()
-            end)
-        end
+        if callback then callback(_G.FH4N[key]) end
     end)
 end
 
@@ -106,38 +92,56 @@ local function Btn(p, txt, cb)
     b.MouseButton1Click:Connect(cb)
 end
 
--- --- CONTENT ---
-Tab("PLAYER", pages.P, 0); Tab("COMBAT", pages.C, 1); Tab("VISUAL", pages.V, 2); Tab("TELEPORT", pages.T, 3); Tab("MISC", pages.M, 4)
+-- --- CONTENT SETUP ---
+Tab("PLAYER", pages.P, 0); Tab("COMBAT", pages.C, 1); Tab("CAMERA", pages.Cam, 2); Tab("TELEPORT", pages.T, 3); Tab("MISC", pages.M, 4)
 
--- P: Speed, Jump, Fly, Noclip, InfJump
-Input(pages.P, "Set WalkSpeed", "WS")
-Input(pages.P, "Set JumpPower", "JP")
-Toggle(pages.P, "Fly 3D Analog", "Fly")
+-- PLAYER TAB
+Input(pages.P, "WalkSpeed", "WS")
+Input(pages.P, "JumpPower", "JP")
+Toggle(pages.P, "Fly 3D Analog", "Fly", function(v)
+    if v then
+        task.spawn(function()
+            local r = Player.Character:WaitForChild("HumanoidRootPart")
+            local h = Player.Character:WaitForChild("Humanoid")
+            local bv = Instance.new("BodyVelocity", r); bv.MaxForce = Vector3.new(1e6,1e6,1e6)
+            local bg = Instance.new("BodyGyro", r); bg.MaxTorque = Vector3.new(1e6,1e6,1e6)
+            while _G.FH4N.Fly do
+                bg.CFrame = Camera.CFrame
+                bv.Velocity = (h.MoveDirection.Magnitude > 0) and (Camera.CFrame.LookVector * _G.FH4N.WS) or Vector3.new(0,0.1,0)
+                task.wait()
+            end
+            bv:Destroy(); bg:Destroy()
+        end)
+    end
+end)
+Toggle(pages.P, "Adidas Animation", "Adidas", function(v)
+    if v then
+        -- Adidas Animation Script Logic
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/GamerScripter/Adidas-Anim/main/Script.lua"))()
+    end
+end)
 Toggle(pages.P, "Noclip", "Nc")
 Toggle(pages.P, "Infinite Jump", "IJ")
 
--- C: Hitbox, Spin
+-- COMBAT & CAMERA & OTHERS
 Toggle(pages.C, "Hitbox Expander", "Hitbox")
-Toggle(pages.C, "Spin Bot", "Spin")
-
--- V: ESP, FullBright, FPS Booster
-Toggle(pages.V, "ESP Highlight", "ESP")
-Toggle(pages.V, "FullBright", "FB")
-Btn(pages.V, "FPS Booster (Delete Textures)", function()
-    for _, v in pairs(game:GetDescendants()) do 
-        if v:IsA("BasePart") then v.Material = Enum.Material.SmoothPlastic end 
-        if v:IsA("Decal") or v:IsA("Texture") then v:Destroy() end
+Toggle(pages.Cam, "Freecam (Analog Move)", "Freecam", function(v)
+    if v then
+        local p = Instance.new("Part", workspace); p.Size = Vector3.new(1,1,1); p.Transparency = 1; p.Anchored = true; p.CanCollide = false
+        p.CFrame = Camera.CFrame; Camera.CameraSubject = p
+        task.spawn(function()
+            while _G.FH4N.Freecam do
+                p.CFrame *= CFrame.new(Player.Character.Humanoid.MoveDirection * 2)
+                task.wait()
+            end
+            Camera.CameraSubject = Player.Character.Humanoid; p:Destroy()
+        end)
     end
 end)
-
--- T: TP Player, Server Hop, Rejoin
-Input(pages.T, "TP Player (Name)", "TP_Target")
-Btn(pages.T, "Server Hop", function() TeleportService:Teleport(game.PlaceId) end)
-Btn(pages.T, "Rejoin", function() TeleportService:Teleport(game.PlaceId, Player) end)
-
--- M: Inf Yield, Anti-AFK
-Toggle(pages.M, "Anti-AFK", "AntiAFK")
-Btn(pages.M, "Infinite Yield (FE Admin)", function() loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))() end)
+Input(pages.Cam, "Max Zoom Distance", "MaxZoom")
+Toggle(pages.Cam, "FullBright", "FB")
+Input(pages.T, "TP Player Name", "TP_Target")
+Btn(pages.M, "Infinite Yield", function() loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))() end)
 
 -- --- LOGO ---
 local L = Instance.new("TextButton", sg); L.Size = UDim2.new(0, 55, 0, 55); L.Position = UDim2.new(0, 15, 0.5, 0)
@@ -145,34 +149,18 @@ L.Text = "FN"; L.BackgroundColor3 = Color3.fromRGB(0, 120, 255); L.TextColor3 = 
 Instance.new("UICorner", L).CornerRadius = UDim.new(1, 0); Drag(L)
 L.MouseButton1Click:Connect(function() Main.Visible = not Main.Visible end)
 
--- --- CORE LOOP ---
-UIS.JumpRequest:Connect(function() if _G.FH4N.IJ and Player.Character then Player.Character.Humanoid:ChangeState(3) end end)
-
+-- --- HEARTBEAT ENGINE ---
 RunService.Heartbeat:Connect(function()
     pcall(function()
-        local char = Player.Character
-        if char and char:FindFirstChild("Humanoid") then
-            if not _G.FH4N.Fly then char.Humanoid.WalkSpeed = _G.FH4N.WS end
-            char.Humanoid.JumpPower = _G.FH4N.JP
-            char.Humanoid.UseJumpPower = true
-            
-            if _G.FH4N.Nc then for _, v in pairs(char:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end end
-            if _G.FH4N.Spin then char.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(60), 0) end
-            
+        if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+            local hum = Player.Character.Humanoid
+            if not _G.FH4N.Fly then hum.WalkSpeed = _G.FH4N.WS end
+            hum.JumpPower = _G.FH4N.JP; hum.UseJumpPower = true
+            Player.Character.MaxZoomDistance = _G.FH4N.MaxZoom
+            if _G.FH4N.Nc then for _, v in pairs(Player.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end end
             if _G.FH4N.Hitbox then
                 for _, p in pairs(Players:GetPlayers()) do
-                    if p ~= Player and p.Character then 
-                        p.Character.HumanoidRootPart.Size = Vector3.new(15, 15, 15)
-                        p.Character.HumanoidRootPart.Transparency = 0.7 
-                    end
-                end
-            end
-            
-            if _G.FH4N.ESP then
-                for _, p in pairs(Players:GetPlayers()) do
-                    if p ~= Player and p.Character and not p.Character:FindFirstChild("Highlight") then
-                        Instance.new("Highlight", p.Character)
-                    end
+                    if p ~= Player and p.Character then p.Character.HumanoidRootPart.Size = Vector3.new(15, 15, 15); p.Character.HumanoidRootPart.Transparency = 0.7 end
                 end
             end
         end
@@ -180,7 +168,8 @@ RunService.Heartbeat:Connect(function()
     end)
 end)
 
--- TP Logic (Triggered by Input)
+UIS.JumpRequest:Connect(function() if _G.FH4N.IJ and Player.Character then Player.Character.Humanoid:ChangeState(3) end end)
+
 task.spawn(function()
     while task.wait(0.5) do
         if _G.FH4N.TP_Target and _G.FH4N.TP_Target ~= "" then
